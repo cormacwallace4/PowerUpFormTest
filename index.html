@@ -17,7 +17,11 @@
 <body>
   <main class="page">
     <div class="container">
-      <form class="card" action="https://formspree.io/f/xldwankz" method="POST" novalidate>
+      <form class="card" id="intakeForm" action="https://formspree.io/f/xldwankz" method="POST" enctype="multipart/form-data" novalidate>
+<input type="hidden" name="_subject" value="New Intake Form Submission" />
+<div id="formStatus" aria-live="polite" style="margin:8px 0 0 0;"></div>
+
+
           <h2 style="text-align:center; font-size:34px; color:#709874; font-weight:700; letter-spacing:1px; margin:0 0 12px 0;">
     POWER UP NUTRITION
   </h2>
@@ -2469,5 +2473,131 @@
       </form>
     </div>
   </main>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-YcsIPo9STiQZ4t7O2s0O3x4r6b3SxG8u4mT2n8StlJf2h7g0i3bq8p8o7jv3pQhG6wQ0Q0KJ6o0kOq1Y+3Zf0A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+  (function () {
+    // CONFIG: tweak filename to include name/date if those fields exist
+    function buildFilename() {
+      var dateStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+      var reg = document.getElementById('clientRegistration');
+      var nameGuess = '';
+      try {
+        // If you have first/last name fields elsewhere, set nameGuess from those IDs.
+        // Example:
+        // nameGuess = (document.getElementById('firstName')?.value || '') + '-' + (document.getElementById('lastName')?.value || '');
+      } catch (e) {}
+      var base = 'PowerUp-Intake-' + (nameGuess ? (nameGuess + '-') : '') + dateStr + '.pdf';
+      return base.replace(/\s+/g, '_');
+    }
+
+    var form = document.getElementById('intakeForm');
+    if (!form) return;
+
+    // We will render JUST the form card (looks exactly like the user sees it)
+    var renderTarget = form; // the form element has the nice card styling
+
+    async function generatePdfBlob() {
+      var opt = {
+        margin:       [10, 10, 10, 10], // mm
+        filename:     buildFilename(),
+        image:        { type: 'jpeg', quality: 0.95 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak:    { mode: ['css', 'legacy'] } // respects CSS page-breaks if you add any later
+      };
+      // html2pdf returns a Promise with an object exposing .outputPdf('blob')
+      // Simpler: get the resulting Blob directly:
+      return new Promise(function(resolve, reject) {
+        try {
+          html2pdf().set(opt).from(renderTarget).outputPdf('blob')
+            .then(resolve)
+            .catch(reject);
+        } catch (err) {
+          reject(err);
+        }
+      });
+    }
+
+    // Helper to show status to the user
+    function setStatus(msg, ok) {
+      var box = document.getElementById('formStatus');
+      if (!box) return;
+      box.textContent = msg;
+      box.style.color = ok ? '#2e7d32' : '#b00020';
+      box.style.fontWeight = '600';
+    }
+
+    async function handleSubmit(e) {
+      e.preventDefault();
+
+      var submitBtn = form.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Generating PDF...';
+      }
+      setStatus('Generating PDF of your answers…', true);
+
+      let pdfBlob = null;
+
+      // Try to generate the PDF. If it fails, we will still submit without attachment.
+      try {
+        pdfBlob = await generatePdfBlob();
+      } catch (err) {
+        console.error('PDF generation failed:', err);
+        setStatus('Could not generate PDF automatically — sending answers without PDF attachment.', false);
+      }
+
+      // Build multipart form data (includes all the existing inputs)
+      var data = new FormData(form);
+
+      // If the PDF was created, attach it (Formspree supports file attachments on certain plans)
+      if (pdfBlob) {
+        var filename = buildFilename();
+        data.append('intake_pdf', pdfBlob, filename);
+      }
+
+      // Optional: include a human-friendly summary in the email body top
+      // data.append('_format', 'plain'); // (Formspree default is fine)
+      // data.append('_replyto', 'youremail@example.com'); // only if you want reply-to from a specific field
+
+      // Send to Formspree via fetch
+      var endpoint = form.getAttribute('action');
+      try {
+        if (submitBtn) submitBtn.textContent = 'Submitting…';
+        setStatus('Submitting your answers…', true);
+
+        var resp = await fetch(endpoint, {
+          method: 'POST',
+          body: data
+        });
+
+        if (resp.ok) {
+          setStatus('Thank you! Your form has been submitted' + (pdfBlob ? ' with a PDF attached.' : '.'), true);
+
+          // Nice UX: show a simple success, then reset form
+          try { form.reset(); } catch (e) {}
+
+          // If you have a thank-you page, you can redirect:
+          // window.location.href = '/thank-you.html';
+        } else {
+          var txt = await resp.text();
+          console.error('Formspree error:', txt);
+          setStatus('Submission failed. Please try again or contact us directly.', false);
+        }
+      } catch (err) {
+        console.error('Network error:', err);
+        setStatus('Network error. Please try again later.', false);
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Submit';
+        }
+      }
+    }
+
+    form.addEventListener('submit', handleSubmit);
+  })();
+</script>
+
 </body>
 </html>
