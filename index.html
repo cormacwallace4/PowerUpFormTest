@@ -2694,15 +2694,16 @@
     setStatus('Submitting your answers…', true);
 
     try {
-      const resp = await fetch(gasUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'intake_submission',
-          answers: plain,
-          pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null
-        })
-      });
+     const resp = await fetch(gasUrl, {
+  method: 'POST',
+  // IMPORTANT: no 'Content-Type' header, or set to 'text/plain'
+  body: JSON.stringify({
+    type: 'intake_submission',
+    answers: plain,
+    pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null
+  })
+});
+
 
       if (resp.ok) {
         setStatus('Thank you! Your form has been submitted.', true);
