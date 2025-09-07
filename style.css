@@ -1,5 +1,4 @@
-/* Centered, boxed layout with strict max-width.
-   Mobile-friendly, no overflow, tables contained.  */
+/* Centered, boxed layout; inputs are real boxes; fully responsive */
 
 * { box-sizing: border-box; }
 
@@ -13,30 +12,30 @@ html, body {
   -webkit-text-size-adjust: 100%;
 }
 
-/* Page container to center everything */
+/* Page area */
 .page {
-  display: flex;
-  justify-content: center;
   padding: 24px 12px;
 }
 
-/* Outer shell that enforces a strict width */
-.shell {
+/* STRICT box wrapper so nothing can stretch full-width */
+.container {
   width: 100%;
-  max-width: 760px;   /* <- controls desktop width */
+  max-width: 720px;       /* <- the card will never exceed this width */
+  margin: 0 auto;         /* centered */
 }
 
-/* Card that holds the entire form */
-.form-card {
+/* The card that holds everything */
+.card {
   background: #fff;
   border: 1px solid #cfcfcf;
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 22px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  overflow: hidden;       /* safety: prevent any child from escaping */
 }
 
-/* Title and intro */
-.form-title {
+/* Title + intro */
+.title {
   margin: 0 0 10px 0;
   text-align: center;
   font-size: 18px;
@@ -44,61 +43,36 @@ html, body {
   text-decoration: underline;
 }
 
-.form-intro {
+.intro {
   margin: 0 0 18px 0;
   font-size: 14px;
 }
 
 /* Fields */
 .field { margin: 14px 0; }
+.block { display: block; margin-bottom: 8px; font-weight: 600; }
 
-.block {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
+.inline {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-.label-inline {
-  margin-right: 8px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-/* Inputs */
-input[type="text"],
-input[type="date"],
-textarea {
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid #bbb;
-  border-radius: 4px;
-  background: #f7f7f7;
-  font-size: 14px;
-  color: #111;
-}
-
-textarea { resize: vertical; }
-
-/* Compact inline inputs used for short fields */
-.field-inline-wrap {
+.inline-wrap {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 10px 12px;
 }
 
-.input-inline {
-  width: 160px;
+.label-inline {
+  font-weight: 600;
+  white-space: nowrap;
+  margin-right: 8px;
 }
 
-.label-gap { margin-left: 8px; }
-
-/* Radio choices */
-.field-inline {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
+.gap { margin-left: 8px; }
 
 .choice {
   display: inline-flex;
@@ -107,20 +81,35 @@ textarea { resize: vertical; }
   font-size: 14px;
 }
 
-/* Tables live inside a wrapper that guarantees containment */
+/* REAL boxed inputs */
+input[type="text"],
+input[type="date"],
+textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid #b8bcc6;   /* visible box */
+  border-radius: 6px;
+  background: #ffffff;         /* white, not underlined */
+  font-size: 14px;
+  color: #111;
+}
+
+input.short { width: 160px; }
+
+textarea { resize: vertical; }
+
+/* Tables stay INSIDE the card */
 .table-wrap {
   width: 100%;
-  overflow-x: auto;             /* keeps table scroll inside the card on small screens */
+  overflow-x: auto;            /* if narrow mobile, scroll inside the card */
   border: 1px solid #cfcfcf;
-  border-radius: 4px;
+  border-radius: 6px;
   background: #fff;
 }
 
-/* Table */
 .table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 520px;             /* prevents squashing on mobile; wrapper will scroll */
   table-layout: fixed;
 }
 
@@ -138,11 +127,13 @@ textarea { resize: vertical; }
   font-size: 14px;
 }
 
+/* Inputs inside table are also proper boxes */
 .table td input[type="text"] {
   width: 100%;
-  border: 0;
-  padding: 6px;
-  background: #fafafa;
+  padding: 8px 10px;
+  border: 1px solid #b8bcc6;
+  border-radius: 4px;
+  background: #ffffff;
   font-size: 14px;
   color: #111;
 }
@@ -157,20 +148,16 @@ textarea { resize: vertical; }
   appearance: none;
   border: 1px solid #888;
   background: #eaeaea;
-  padding: 8px 14px;
-  border-radius: 4px;
-  font-weight: 600;
+  padding: 9px 16px;
+  border-radius: 6px;
+  font-weight: 700;
   cursor: pointer;
 }
 
 .btn:hover { background: #e2e2e2; }
 
-/* Safety: never let children overflow the card horizontally */
-.form-card { overflow: hidden; }
-
 /* Mobile tweaks */
-@media (max-width: 520px) {
-  .shell { max-width: 100%; }
-  .form-card { padding: 18px; }
-  .input-inline { width: 120px; }
+@media (max-width: 540px) {
+  input.short { width: 120px; }
+  .card { padding: 18px; }
 }
