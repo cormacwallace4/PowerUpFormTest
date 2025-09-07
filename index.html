@@ -9,167 +9,175 @@
 </head>
 <body>
   <main class="page">
-    <form class="form-card" action="https://formspree.io/f/xldwankz" method="POST">
-      <h1 class="form-title">Pre-Appointment Nutritional Assessment Questionnaire</h1>
+    <section class="shell">
+      <form class="form-card" action="https://formspree.io/f/xldwankz" method="POST">
+        <h1 class="form-title">Pre-Appointment Nutritional Assessment Questionnaire</h1>
 
-      <p class="form-intro">
-        This questionnaire will be combined with information gathered during the consultation and used to build an
-        individual nutritional program specifically tailored to your needs and lifestyle. I invite you to answer the
-        questions as accurately as you can. All personal information provided is strictly confidential.
-      </p>
+        <p class="form-intro">
+          This questionnaire will be combined with information gathered during the consultation and used to build an
+          individual nutritional program specifically tailored to your needs and lifestyle. Please answer as accurately
+          as you can. All personal information provided is strictly confidential.
+        </p>
 
-      <!-- Client details -->
-      <div class="field">
-        <label for="clientRegistration">Client registration number</label>
-        <input type="text" id="clientRegistration" name="clientRegistration" placeholder="Click or tap here to enter text." />
-      </div>
+        <!-- Client details -->
+        <div class="field">
+          <label for="clientRegistration">Client registration number</label>
+          <input type="text" id="clientRegistration" name="clientRegistration" placeholder="Click or tap here to enter text." />
+        </div>
 
-      <div class="field">
-        <label for="dob">DOB:</label>
-        <input type="date" id="dob" name="dob" />
-      </div>
+        <div class="field">
+          <label for="dob">DOB:</label>
+          <input type="date" id="dob" name="dob" />
+        </div>
 
-      <div class="field field-inline">
-        <span class="label-inline">Sex:</span>
-        <label class="choice"><input type="radio" name="sex" value="M" /> M</label>
-        <label class="choice"><input type="radio" name="sex" value="F" /> F</label>
-      </div>
+        <div class="field field-inline">
+          <span class="label-inline">Sex:</span>
+          <label class="choice"><input type="radio" name="sex" value="M" /> M</label>
+          <label class="choice"><input type="radio" name="sex" value="F" /> F</label>
+        </div>
 
-      <div class="field">
-        <label for="occupation">Occupation (active/sedentary)</label>
-        <input type="text" id="occupation" name="occupation" placeholder="Click or tap here to enter text." />
-      </div>
+        <div class="field">
+          <label for="occupation">Occupation (active/sedentary)</label>
+          <input type="text" id="occupation" name="occupation" placeholder="Click or tap here to enter text." />
+        </div>
 
-      <!-- If known -->
-      <div class="field field-inline-wrap">
-        <label for="bloodPressure" class="label-inline">If known: Blood pressure</label>
-        <input type="text" id="bloodPressure" name="bloodPressure" class="input-inline" placeholder="" />
+        <!-- If known -->
+        <div class="field field-inline-wrap">
+          <label for="bloodPressure" class="label-inline">If known: Blood pressure</label>
+          <input type="text" id="bloodPressure" name="bloodPressure" class="input-inline" />
+          <label for="cholesterol" class="label-inline label-gap">Cholesterol</label>
+          <input type="text" id="cholesterol" name="cholesterol" class="input-inline" />
+        </div>
 
-        <label for="cholesterol" class="label-inline label-gap">Cholesterol</label>
-        <input type="text" id="cholesterol" name="cholesterol" class="input-inline" placeholder="" />
-      </div>
+        <div class="field field-inline-wrap">
+          <label for="weight" class="label-inline">Weight</label>
+          <input type="text" id="weight" name="weight" class="input-inline" />
+          <label for="height" class="label-inline label-gap">Height</label>
+          <input type="text" id="height" name="height" class="input-inline" />
+        </div>
 
-      <div class="field field-inline-wrap">
-        <label for="weight" class="label-inline">Weight</label>
-        <input type="text" id="weight" name="weight" class="input-inline" placeholder="" />
+        <!-- Pregnancy status -->
+        <div class="field field-inline-wrap">
+          <span class="label-inline">Are you pregnant, breast-feeding or trying for a baby</span>
+          <label class="choice"><input type="radio" name="pregnancyStatus" value="Pregnant" /> Pregnant</label>
+          <label class="choice"><input type="radio" name="pregnancyStatus" value="Breast-feeding" /> Breast-feeding</label>
+          <label class="choice"><input type="radio" name="pregnancyStatus" value="Trying for a baby" /> Trying for a baby</label>
+          <label class="choice"><input type="radio" name="pregnancyStatus" value="N/A" /> N/A</label>
+        </div>
 
-        <label for="height" class="label-inline label-gap">Height</label>
-        <input type="text" id="height" name="height" class="input-inline" placeholder="" />
-      </div>
+        <!-- Recent tests -->
+        <div class="field">
+          <label>
+            Have you had any blood/urine/saliva or other laboratory tests recently? If yes, please state which tests
+            below and if possible, attach a copy by email.
+          </label>
+          <textarea name="testsDetails" rows="4"></textarea>
+        </div>
 
-      <!-- Pregnancy status -->
-      <div class="field field-inline-wrap">
-        <span class="label-inline">Are you pregnant, breast-feeding or trying for a baby</span>
-        <label class="choice"><input type="radio" name="pregnancyStatus" value="Pregnant" /> Pregnant</label>
-        <label class="choice"><input type="radio" name="pregnancyStatus" value="Breast-feeding" /> Breast-feeding</label>
-        <label class="choice"><input type="radio" name="pregnancyStatus" value="Trying for a baby" /> Trying for a baby</label>
-        <label class="choice"><input type="radio" name="pregnancyStatus" value="N/A" /> N/A</label>
-      </div>
+        <!-- Major health concerns -->
+        <div class="field">
+          <label>Please list your five major health concerns in order of importance:</label>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Health concern</th>
+                  <th>Duration</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><input type="text" name="concern1" /></td>
+                  <td><input type="text" name="concern1Duration" /></td>
+                </tr>
+                <tr>
+                  <td><input type="text" name="concern2" /></td>
+                  <td><input type="text" name="concern2Duration" /></td>
+                </tr>
+                <tr>
+                  <td><input type="text" name="concern3" /></td>
+                  <td><input type="text" name="concern3Duration" /></td>
+                </tr>
+                <tr>
+                  <td><input type="text" name="concern4" /></td>
+                  <td><input type="text" name="concern4Duration" /></td>
+                </tr>
+                <tr>
+                  <td><input type="text" name="concern5" /></td>
+                  <td><input type="text" name="concern5Duration" /></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-      <!-- Recent tests -->
-      <div class="field">
-        <label>Have you had any blood/urine/saliva or other laboratory tests recently? If yes, please state which tests below and if possible, attach a copy by email.</label>
-        <textarea name="testsDetails" rows="4" placeholder=""></textarea>
-      </div>
+        <!-- Previous health issues -->
+        <div class="field">
+          <label class="block">
+            Previous Health Issues: Are there any other diagnosed medical conditions or health concerns that you have
+            had in the past (e.g. depression, eating disorders, tonsillitis, appendix, asthma).
+          </label>
 
-      <!-- Major health concerns -->
-      <div class="field">
-        <label>Please list your five major health concerns in order of importance:</label>
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Health concern</th>
-              <th>Duration</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><input type="text" name="concern1" /></td>
-              <td><input type="text" name="concern1Duration" /></td>
-            </tr>
-            <tr>
-              <td><input type="text" name="concern2" /></td>
-              <td><input type="text" name="concern2Duration" /></td>
-            </tr>
-            <tr>
-              <td><input type="text" name="concern3" /></td>
-              <td><input type="text" name="concern3Duration" /></td>
-            </tr>
-            <tr>
-              <td><input type="text" name="concern4" /></td>
-              <td><input type="text" name="concern4Duration" /></td>
-            </tr>
-            <tr>
-              <td><input type="text" name="concern5" /></td>
-              <td><input type="text" name="concern5Duration" /></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Health issue</th>
+                  <th>Duration</th>
+                  <th>How you managed it</th>
+                  <th>When did it start</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><input type="text" name="prevIssue1" /></td>
+                  <td><input type="text" name="prevIssue1Duration" /></td>
+                  <td><input type="text" name="prevIssue1Management" /></td>
+                  <td><input type="text" name="prevIssue1Start" /></td>
+                </tr>
+                <tr>
+                  <td><input type="text" name="prevIssue2" /></td>
+                  <td><input type="text" name="prevIssue2Duration" /></td>
+                  <td><input type="text" name="prevIssue2Management" /></td>
+                  <td><input type="text" name="prevIssue2Start" /></td>
+                </tr>
+                <tr>
+                  <td><input type="text" name="prevIssue3" /></td>
+                  <td><input type="text" name="prevIssue3Duration" /></td>
+                  <td><input type="text" name="prevIssue3Management" /></td>
+                  <td><input type="text" name="prevIssue3Start" /></td>
+                </tr>
+                <tr>
+                  <td><input type="text" name="prevIssue4" /></td>
+                  <td><input type="text" name="prevIssue4Duration" /></td>
+                  <td><input type="text" name="prevIssue4Management" /></td>
+                  <td><input type="text" name="prevIssue4Start" /></td>
+                </tr>
+                <tr>
+                  <td><input type="text" name="prevIssue5" /></td>
+                  <td><input type="text" name="prevIssue5Duration" /></td>
+                  <td><input type="text" name="prevIssue5Management" /></td>
+                  <td><input type="text" name="prevIssue5Start" /></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-      <!-- Previous health issues -->
-      <div class="field">
-        <label class="block">
-          Pervious Health Issues: Are there any other diagnosed medical conditions or health concerns that you have had in the past
-          (e.g. depression, eating disorders, tonsillitis, appendix, asthma).
-        </label>
+        <!-- Therapies / consultants -->
+        <div class="field">
+          <label for="currentTherapies" class="block">
+            Are you currently attending any other Therapies and or working with any medical consultant(s)? If yes,
+            please name
+          </label>
+          <textarea id="currentTherapies" name="currentTherapies" rows="3"></textarea>
+        </div>
 
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Health issue</th>
-              <th>Duration</th>
-              <th>How you managed it</th>
-              <th>When did it start</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><input type="text" name="prevIssue1" /></td>
-              <td><input type="text" name="prevIssue1Duration" /></td>
-              <td><input type="text" name="prevIssue1Management" /></td>
-              <td><input type="text" name="prevIssue1Start" /></td>
-            </tr>
-            <tr>
-              <td><input type="text" name="prevIssue2" /></td>
-              <td><input type="text" name="prevIssue2Duration" /></td>
-              <td><input type="text" name="prevIssue2Management" /></td>
-              <td><input type="text" name="prevIssue2Start" /></td>
-            </tr>
-            <tr>
-              <td><input type="text" name="prevIssue3" /></td>
-              <td><input type="text" name="prevIssue3Duration" /></td>
-              <td><input type="text" name="prevIssue3Management" /></td>
-              <td><input type="text" name="prevIssue3Start" /></td>
-            </tr>
-            <tr>
-              <td><input type="text" name="prevIssue4" /></td>
-              <td><input type="text" name="prevIssue4Duration" /></td>
-              <td><input type="text" name="prevIssue4Management" /></td>
-              <td><input type="text" name="prevIssue4Start" /></td>
-            </tr>
-            <tr>
-              <td><input type="text" name="prevIssue5" /></td>
-              <td><input type="text" name="prevIssue5Duration" /></td>
-              <td><input type="text" name="prevIssue5Management" /></td>
-              <td><input type="text" name="prevIssue5Start" /></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Therapies / consultants -->
-      <div class="field">
-        <label for="currentTherapies" class="block">
-          Are you currently attending any other Therapies and or working with any medical consultant(s)? If yes, please name
-        </label>
-        <textarea id="currentTherapies" name="currentTherapies" rows="3" placeholder=""></textarea>
-      </div>
-
-      <div class="actions">
-        <button type="submit" class="btn">Submit</button>
-      </div>
-    </form>
+        <div class="actions">
+          <button type="submit" class="btn">Submit</button>
+        </div>
+      </form>
+    </section>
   </main>
 </body>
 </html>
