@@ -4,22 +4,266 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>PowerUp Nutrition</title>
+  <meta name="description" content="Pre-Appointment Nutritional Assessment Questionnaire for PowerUp Nutrition." />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
-    <h1>PowerUp Nutrition</h1>
-    <p>Please fill out this form:</p>
+    <header class="page-header">
+      <h1>PowerUp Nutrition</h1>
+      <p class="lead">Pre-Appointment Nutritional Assessment Questionnaire</p>
+      <p class="intro">
+        This questionnaire will be combined with information gathered during the consultation and used to build an individual nutritional program specifically tailored to your needs and lifestyle. Please answer as accurately as you can. All personal information provided is strictly confidential.
+      </p>
+    </header>
 
-    <!-- Replace YOUR_ENDPOINT_HERE with your Formspree endpoint -->
-    <form action="https://formspree.io/f/xldwankz" method="POST">
-      <label for="firstName">*First Name</label>
-      <input type="text" id="firstName" name="firstName" required />
+    <!-- Formspree: replace action with your endpoint (already set from your message) -->
+    <form class="form" action="https://formspree.io/f/xldwankz" method="POST">
+      <!-- ========== Client & Basics ========== -->
+      <fieldset class="fieldset">
+        <legend>Client Details</legend>
 
-      <label for="lastName">*Last Name</label>
-      <input type="text" id="lastName" name="lastName" required />
+        <div class="grid grid-2">
+          <div class="field">
+            <label for="clientRegistration">Client registration number</label>
+            <input type="text" id="clientRegistration" name="clientRegistration" placeholder="Enter registration number" />
+          </div>
 
-      <button type="submit">Submit</button>
+          <div class="field">
+            <label for="dob">DOB</label>
+            <input type="date" id="dob" name="dob" />
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="label">Sex</span>
+          <div class="choices">
+            <label class="choice">
+              <input type="radio" name="sex" value="M" />
+              <span>M</span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="sex" value="F" />
+              <span>F</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="occupation">Occupation (active/sedentary)</label>
+          <input type="text" id="occupation" name="occupation" placeholder="e.g., Office admin (sedentary), Retail (active)" />
+        </div>
+      </fieldset>
+
+      <!-- ========== Vitals (If known) ========== -->
+      <fieldset class="fieldset">
+        <legend>If known</legend>
+
+        <div class="grid grid-2">
+          <div class="field">
+            <label for="bloodPressure">Blood pressure</label>
+            <input type="text" id="bloodPressure" name="bloodPressure" placeholder="e.g., 120/80 mmHg" />
+          </div>
+
+          <div class="field">
+            <label for="cholesterol">Cholesterol</label>
+            <input type="text" id="cholesterol" name="cholesterol" placeholder="e.g., 4.8 mmol/L" />
+          </div>
+        </div>
+
+        <div class="grid grid-2">
+          <div class="field">
+            <label for="weight">Weight</label>
+            <input type="text" id="weight" name="weight" placeholder="e.g., 72 kg" />
+          </div>
+
+          <div class="field">
+            <label for="height">Height</label>
+            <input type="text" id="height" name="height" placeholder="e.g., 175 cm" />
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- ========== Pregnancy/Breastfeeding/Trying ========== -->
+      <fieldset class="fieldset">
+        <legend>Pregnancy / Breast-feeding / Trying</legend>
+        <div class="field">
+          <div class="choices choices-wrap">
+            <label class="choice">
+              <input type="radio" name="pregnancyStatus" value="Pregnant" />
+              <span>Pregnant</span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="pregnancyStatus" value="Breast-feeding" />
+              <span>Breast-feeding</span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="pregnancyStatus" value="Trying for a baby" />
+              <span>Trying for a baby</span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="pregnancyStatus" value="N/A" />
+              <span>N/A</span>
+            </label>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- ========== Recent Tests ========== -->
+      <fieldset class="fieldset">
+        <legend>Recent laboratory tests</legend>
+
+        <div class="field">
+          <span class="label">Have you had any blood/urine/saliva or other laboratory tests recently?</span>
+          <div class="choices">
+            <label class="choice">
+              <input type="radio" name="recentTests" value="Yes" />
+              <span>Yes</span>
+            </label>
+            <label class="choice">
+              <input type="radio" name="recentTests" value="No" />
+              <span>No</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="testsDetails">If yes, please state which tests (you may email copies separately)</label>
+          <textarea id="testsDetails" name="testsDetails" rows="4" placeholder="List tests, dates, and any available results"></textarea>
+        </div>
+      </fieldset>
+
+      <!-- ========== Major Health Concerns (5) ========== -->
+      <fieldset class="fieldset">
+        <legend>Major health concerns (list in order of importance)</legend>
+
+        <div class="repeat">
+          <div class="grid grid-2 repeat-row">
+            <div class="field">
+              <label for="concern1">Health concern #1</label>
+              <input type="text" id="concern1" name="concern1" placeholder="e.g., Digestive discomfort" />
+            </div>
+            <div class="field">
+              <label for="concern1Duration">Duration</label>
+              <input type="text" id="concern1Duration" name="concern1Duration" placeholder="e.g., 6 months" />
+            </div>
+          </div>
+
+          <div class="grid grid-2 repeat-row">
+            <div class="field">
+              <label for="concern2">Health concern #2</label>
+              <input type="text" id="concern2" name="concern2" placeholder="e.g., Low energy" />
+            </div>
+            <div class="field">
+              <label for="concern2Duration">Duration</label>
+              <input type="text" id="concern2Duration" name="concern2Duration" placeholder="e.g., 1 year" />
+            </div>
+          </div>
+
+          <div class="grid grid-2 repeat-row">
+            <div class="field">
+              <label for="concern3">Health concern #3</label>
+              <input type="text" id="concern3" name="concern3" placeholder="e.g., Sleep quality" />
+            </div>
+            <div class="field">
+              <label for="concern3Duration">Duration</label>
+              <input type="text" id="concern3Duration" name="concern3Duration" placeholder="e.g., 3 months" />
+            </div>
+          </div>
+
+          <div class="grid grid-2 repeat-row">
+            <div class="field">
+              <label for="concern4">Health concern #4</label>
+              <input type="text" id="concern4" name="concern4" placeholder="e.g., Skin issues" />
+            </div>
+            <div class="field">
+              <label for="concern4Duration">Duration</label>
+              <input type="text" id="concern4Duration" name="concern4Duration" placeholder="e.g., 2 years" />
+            </div>
+          </div>
+
+          <div class="grid grid-2 repeat-row">
+            <div class="field">
+              <label for="concern5">Health concern #5</label>
+              <input type="text" id="concern5" name="concern5" placeholder="e.g., Cravings" />
+            </div>
+            <div class="field">
+              <label for="concern5Duration">Duration</label>
+              <input type="text" id="concern5Duration" name="concern5Duration" placeholder="e.g., 8 weeks" />
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- ========== Previous Health Issues ========== -->
+      <fieldset class="fieldset">
+        <legend>Previous Health Issues</legend>
+        <p class="hint">
+          Are there any other diagnosed medical conditions or health concerns that you have had in the past (e.g., depression, eating disorders, tonsillitis, appendix, asthma)?
+        </p>
+
+        <div class="table-like">
+          <div class="table-head">
+            <div>Health issue</div>
+            <div>Duration</div>
+            <div>How you managed it</div>
+            <div>When did it start</div>
+          </div>
+
+          <div class="table-row">
+            <input type="text" name="prevIssue1" placeholder="e.g., Asthma" />
+            <input type="text" name="prevIssue1Duration" placeholder="e.g., Since childhood" />
+            <input type="text" name="prevIssue1Management" placeholder="e.g., Inhaler as needed" />
+            <input type="text" name="prevIssue1Start" placeholder="e.g., 2005 / Age 10" />
+          </div>
+
+          <div class="table-row">
+            <input type="text" name="prevIssue2" placeholder="e.g., Depression" />
+            <input type="text" name="prevIssue2Duration" placeholder="e.g., 2019–2022" />
+            <input type="text" name="prevIssue2Management" placeholder="e.g., Therapy, medication" />
+            <input type="text" name="prevIssue2Start" placeholder="e.g., 2019" />
+          </div>
+
+          <div class="table-row">
+            <input type="text" name="prevIssue3" placeholder="e.g., Tonsillitis" />
+            <input type="text" name="prevIssue3Duration" placeholder="e.g., Recurrent (2 years)" />
+            <input type="text" name="prevIssue3Management" placeholder="e.g., Antibiotics, surgery" />
+            <input type="text" name="prevIssue3Start" placeholder="e.g., 2014" />
+          </div>
+
+          <div class="table-row">
+            <input type="text" name="prevIssue4" placeholder="Add another…" />
+            <input type="text" name="prevIssue4Duration" placeholder="Duration" />
+            <input type="text" name="prevIssue4Management" placeholder="How managed" />
+            <input type="text" name="prevIssue4Start" placeholder="Start date/age" />
+          </div>
+
+          <div class="table-row">
+            <input type="text" name="prevIssue5" placeholder="Add another…" />
+            <input type="text" name="prevIssue5Duration" placeholder="Duration" />
+            <input type="text" name="prevIssue5Management" placeholder="How managed" />
+            <input type="text" name="prevIssue5Start" placeholder="Start date/age" />
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- ========== Other Therapies / Consultants ========== -->
+      <fieldset class="fieldset">
+        <legend>Current Therapies / Consultants</legend>
+
+        <div class="field">
+          <label for="currentTherapies">
+            Are you currently attending any other therapies and/or working with any medical consultant(s)? If yes, please name:
+          </label>
+          <textarea id="currentTherapies" name="currentTherapies" rows="4" placeholder="List therapist/consultant names, specialties, and reason for care"></textarea>
+        </div>
+      </fieldset>
+
+      <!-- ========== Submit ========== -->
+      <div class="actions">
+        <button type="submit">Submit Questionnaire</button>
+        <p class="smallprint">By submitting, you consent to being contacted regarding your questionnaire and consultation.</p>
+      </div>
     </form>
   </div>
 </body>
