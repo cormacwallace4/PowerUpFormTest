@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -10,11 +9,11 @@
 </head>
 <body>
   <main class="page">
-    <section class="shell">
-      <form class="form-card" action="https://formspree.io/f/xldwankz" method="POST">
-        <h1 class="form-title">Pre-Appointment Nutritional Assessment Questionnaire</h1>
+    <div class="container">
+      <form class="card" action="https://formspree.io/f/xldwankz" method="POST" novalidate>
+        <h1 class="title">Pre-Appointment Nutritional Assessment Questionnaire</h1>
 
-        <p class="form-intro">
+        <p class="intro">
           This questionnaire will be combined with information gathered during the consultation and used to build an
           individual nutritional program specifically tailored to your needs and lifestyle. Please answer as accurately
           as you can. All personal information provided is strictly confidential.
@@ -27,12 +26,12 @@
         </div>
 
         <div class="field">
-          <label for="dob">DOB:</label>
+          <label for="dob">DOB</label>
           <input type="date" id="dob" name="dob" />
         </div>
 
-        <div class="field field-inline">
-          <span class="label-inline">Sex:</span>
+        <div class="field inline">
+          <span class="label-inline">Sex</span>
           <label class="choice"><input type="radio" name="sex" value="M" /> M</label>
           <label class="choice"><input type="radio" name="sex" value="F" /> F</label>
         </div>
@@ -43,22 +42,22 @@
         </div>
 
         <!-- If known -->
-        <div class="field field-inline-wrap">
+        <div class="field inline-wrap">
           <label for="bloodPressure" class="label-inline">If known: Blood pressure</label>
-          <input type="text" id="bloodPressure" name="bloodPressure" class="input-inline" />
-          <label for="cholesterol" class="label-inline label-gap">Cholesterol</label>
-          <input type="text" id="cholesterol" name="cholesterol" class="input-inline" />
+          <input type="text" id="bloodPressure" name="bloodPressure" class="short" />
+          <label for="cholesterol" class="label-inline gap">Cholesterol</label>
+          <input type="text" id="cholesterol" name="cholesterol" class="short" />
         </div>
 
-        <div class="field field-inline-wrap">
+        <div class="field inline-wrap">
           <label for="weight" class="label-inline">Weight</label>
-          <input type="text" id="weight" name="weight" class="input-inline" />
-          <label for="height" class="label-inline label-gap">Height</label>
-          <input type="text" id="height" name="height" class="input-inline" />
+          <input type="text" id="weight" name="weight" class="short" />
+          <label for="height" class="label-inline gap">Height</label>
+          <input type="text" id="height" name="height" class="short" />
         </div>
 
         <!-- Pregnancy status -->
-        <div class="field field-inline-wrap">
+        <div class="field inline-wrap">
           <span class="label-inline">Are you pregnant, breast-feeding or trying for a baby</span>
           <label class="choice"><input type="radio" name="pregnancyStatus" value="Pregnant" /> Pregnant</label>
           <label class="choice"><input type="radio" name="pregnancyStatus" value="Breast-feeding" /> Breast-feeding</label>
@@ -68,11 +67,11 @@
 
         <!-- Recent tests -->
         <div class="field">
-          <label>
+          <label for="testsDetails">
             Have you had any blood/urine/saliva or other laboratory tests recently? If yes, please state which tests
             below and if possible, attach a copy by email.
           </label>
-          <textarea name="testsDetails" rows="4"></textarea>
+          <textarea id="testsDetails" name="testsDetails" rows="4"></textarea>
         </div>
 
         <!-- Major health concerns -->
@@ -168,8 +167,7 @@
         <!-- Therapies / consultants -->
         <div class="field">
           <label for="currentTherapies" class="block">
-            Are you currently attending any other Therapies and or working with any medical consultant(s)? If yes,
-            please name
+            Are you currently attending any other Therapies and or working with any medical consultant(s)? If yes, please name
           </label>
           <textarea id="currentTherapies" name="currentTherapies" rows="3"></textarea>
         </div>
@@ -178,7 +176,7 @@
           <button type="submit" class="btn">Submit</button>
         </div>
       </form>
-    </section>
+    </div>
   </main>
 </body>
 </html>
