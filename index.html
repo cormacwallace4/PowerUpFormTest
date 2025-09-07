@@ -17,7 +17,7 @@
 <body>
   <main class="page">
     <div class="container">
-      <form class="card" id="intakeForm" action="https://formspree.io/f/xldwankz" method="POST" enctype="multipart/form-data" novalidate>
+      <form class="card" id="intakeForm" action="" data-gas-url="PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE" method="POST" enctype="multipart/form-data" novalidate>
 <input type="hidden" name="_subject" value="New Intake Form Submission" />
 <div id="formStatus" aria-live="polite" style="margin:8px 0 0 0;"></div>
 
@@ -2527,7 +2527,7 @@
       box.style.fontWeight = '600';
     }
 
-    async function handleSubmit(e) {
+    async function handleSubmit_OLD(e) {
       e.preventDefault();
 
       var submitBtn = form.querySelector('button[type="submit"]');
@@ -2595,8 +2595,136 @@
       }
     }
 
-    form.addEventListener('submit', handleSubmit);
+    /* Old submit handler disabled */ // form.addEventListener('submit', handleSubmit_OLD);
   })();
+</script>
+
+
+<script>
+(function () {
+  var form = document.getElementById('intakeForm');
+  if (!form) return;
+
+  function setStatus(msg, ok) {
+    var box = document.getElementById('formStatus');
+    if (!box) return;
+    box.textContent = msg;
+    box.style.color = ok ? '#2e7d32' : '#b00020';
+    box.style.fontWeight = '600';
+  }
+
+  function buildFilename() {
+    var dateStr = new Date().toISOString().slice(0, 10);
+    var base = 'PowerUp-Intake-' + dateStr + '.pdf';
+    return base.replace(/\s+/g, '_');
+  }
+
+  async function generatePdfBlob() {
+    var renderTarget = form; // render the visible form exactly as user sees it
+    var opt = {
+      margin: [10,10,10,10],
+      filename: buildFilename(),
+      image: { type: 'jpeg', quality: 0.95 },
+      html2canvas: { scale: 2, useCORS: true, logging: false },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['css', 'legacy'] }
+    };
+    return new Promise(function(resolve, reject) {
+      try {
+        html2pdf().set(opt).from(renderTarget).outputPdf('blob')
+          .then(resolve).catch(reject);
+      } catch (err) { reject(err); }
+    });
+  }
+
+  function formDataToObject(fd) {
+    var obj = {};
+    fd.forEach(function(value, key) {
+      if (obj[key] !== undefined) {
+        if (!Array.isArray(obj[key])) obj[key] = [obj[key]];
+        obj[key].push(value);
+      } else {
+        obj[key] = value;
+      }
+    });
+    return obj;
+  }
+
+  async function handleSubmit_GAS(e) {
+    e.preventDefault();
+
+    var submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Generating PDF…'; }
+    setStatus('Generating PDF of your answers…', true);
+
+    let pdfBlob = null;
+    try {
+      pdfBlob = await generatePdfBlob();
+    } catch (err) {
+      console.error('PDF generation failed:', err);
+      setStatus('Could not generate PDF automatically.', false);
+    }
+
+    const gasUrl = form.getAttribute('data-gas-url');
+    if (!gasUrl || !/^https?:\/\//i.test(gasUrl)) {
+      setStatus('Missing Apps Script URL. Edit data-gas-url on the form.', false);
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Submit'; }
+      return;
+    }
+
+    // Collect all answers
+    var data = new FormData(form);
+    var plain = formDataToObject(data);
+
+    // Attach the PDF as base64 if we have it
+    let pdfBase64 = null;
+    let filename = buildFilename();
+    if (pdfBlob) {
+      const arrayBuf = await pdfBlob.arrayBuffer();
+      let binary = '';
+      const bytes = new Uint8Array(arrayBuf);
+      const chunkSize = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+      }
+      pdfBase64 = btoa(binary);
+    }
+
+    if (submitBtn) submitBtn.textContent = 'Submitting…';
+    setStatus('Submitting your answers…', true);
+
+    try {
+      const resp = await fetch(gasUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'intake_submission',
+          answers: plain,
+          pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null
+        })
+      });
+
+      if (resp.ok) {
+        setStatus('Thank you! Your form has been submitted.', true);
+        try { form.reset(); } catch (e) {}
+        // Redirect to a thank-you page if you have one
+        setTimeout(function(){ window.location.href = '/thanks.html'; }, 600);
+      } else {
+        const t = await resp.text();
+        console.error('GAS error:', t);
+        setStatus('Submission failed. Please try again or contact us.', false);
+      }
+    } catch (err) {
+      console.error('Network error:', err);
+      setStatus('Network error. Please try again later.', false);
+    } finally {
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'SUBMIT'; }
+    }
+  }
+
+  // Bind our new handler
+  form.addEventListener('submit', handleSubmit_GAS);
+})();
 </script>
 
 </body>
