@@ -249,35 +249,44 @@
   <textarea id="childrenHistory" name="childrenHistory" rows="2"></textarea>
 </div>
 
-<div class="field">
+<!-- Medication (dynamic rows) -->
+<div class="field" id="medicationsSection">
   <label style="font-weight:600;">Medication</label>
   <div class="table-wrap">
-    <table class="table">
+    <table class="table" id="medicationsTable">
       <thead>
         <tr>
           <th>Name</th>
           <th>Dose</th>
           <th>Duration you’ve been taking them</th>
+          <th><!-- actions --></th>
         </tr>
       </thead>
-      <tbody>
-        <tr>
+      <tbody id="medicationsBody">
+        <tr class="medRow">
           <td><input type="text" name="medName1" /></td>
           <td><input type="text" name="medDose1" /></td>
           <td><input type="text" name="medDuration1" /></td>
+          <td><button type="button" class="remove-med" style="border:1px solid #888; background:#eaeaea; padding:6px 10px; border-radius:4px; font-weight:600; cursor:pointer;">Remove</button></td>
         </tr>
-        <tr>
+        <tr class="medRow">
           <td><input type="text" name="medName2" /></td>
           <td><input type="text" name="medDose2" /></td>
           <td><input type="text" name="medDuration2" /></td>
+          <td><button type="button" class="remove-med" style="border:1px solid #888; background:#eaeaea; padding:6px 10px; border-radius:4px; font-weight:600; cursor:pointer;">Remove</button></td>
         </tr>
-        <tr>
+        <tr class="medRow">
           <td><input type="text" name="medName3" /></td>
           <td><input type="text" name="medDose3" /></td>
           <td><input type="text" name="medDuration3" /></td>
+          <td><button type="button" class="remove-med" style="border:1px solid #888; background:#eaeaea; padding:6px 10px; border-radius:4px; font-weight:600; cursor:pointer;">Remove</button></td>
         </tr>
       </tbody>
     </table>
+  </div>
+
+  <div style="margin-top:8px; text-align:left;">
+    <button type="button" id="addMedicationBtn" class="btn">Add another medication</button>
   </div>
 </div>
 
@@ -285,6 +294,43 @@
         <div class="actions">
           <button type="submit" class="btn">Submit</button>
         </div>
+
+        <script>
+  (function () {
+    var body = document.getElementById('medicationsBody');
+    var addBtn = document.getElementById('addMedicationBtn');
+
+    // Start at current row count to keep names unique
+    var idx = body ? body.querySelectorAll('tr.medRow').length : 0;
+
+    function addRow() {
+      idx += 1;
+      var tr = document.createElement('tr');
+      tr.className = 'medRow';
+      tr.innerHTML = '' +
+        '<td><input type="text" name="medName' + idx + '" /></td>' +
+        '<td><input type="text" name="medDose' + idx + '" /></td>' +
+        '<td><input type="text" name="medDuration' + idx + '" /></td>' +
+        '<td><button type="button" class="remove-med" ' +
+        'style="border:1px solid #888; background:#eaeaea; padding:6px 10px; border-radius:4px; font-weight:600; cursor:pointer;">Remove</button></td>';
+      body.appendChild(tr);
+    }
+
+    // Remove a row (leave at least one)
+    function onTableClick(e) {
+      if (e.target && e.target.classList.contains('remove-med')) {
+        var row = e.target.closest('tr');
+        if (row && body.querySelectorAll('tr.medRow').length > 1) {
+          row.remove();
+        }
+      }
+    }
+
+    if (addBtn) addBtn.addEventListener('click', addRow);
+    if (body) body.addEventListener('click', onTableClick);
+  })();
+</script>
+
       </form>
     </div>
   </main>
