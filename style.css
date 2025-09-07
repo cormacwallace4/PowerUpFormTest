@@ -1,272 +1,163 @@
-/* ---------------------------
-   RESET + BASE
---------------------------- */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
+/* Basic, robust, print-friendly styling like the screenshot */
+/* Keep everything inside the form bounds and nicely spaced */
+
+* { box-sizing: border-box; }
 
 html, body {
   margin: 0;
   padding: 0;
+  background: #f5f5f5;
+  color: #111;
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.5;
 }
 
-:root {
-  --bg: #f5f7fb;
-  --card: #ffffff;
-  --text: #1c2230;
-  --muted: #6b7280;
-  --line: #e5e7eb;
-  --brand: #2563eb;
-  --brand-2: #1e40af;
-  --shadow: 0 12px 26px rgba(16, 24, 40, 0.08);
-
-  --radius-md: 12px;
-  --radius-sm: 10px;
-
-  --space-1: 6px;
-  --space-2: 10px;
-  --space-3: 14px;
-  --space-4: 18px;
-  --space-5: 24px;
-  --space-6: 32px;
-
-  --input-bg: #fff;
-  --input-border: #d7dbe4;
-  --input-focus: #bcd0ff;
+/* Page wrapper */
+.page {
+  max-width: 860px;
+  margin: 24px auto;
+  padding: 0 16px;
 }
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-  line-height: 1.6;
-  font-size: 16px;
-}
-
-/* ---------------------------
-   LAYOUT
---------------------------- */
-.page-wrap {
-  width: min(100%, 980px);
-  margin: 0 auto;
-  padding: var(--space-6) var(--space-5);
-}
-
-.hero {
-  margin-bottom: var(--space-5);
-}
-
-.hero__inner {
-  background: linear-gradient(135deg, #ffffff 0%, #eef2ff 100%);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  padding: var(--space-5);
-  box-shadow: var(--shadow);
-}
-
-.hero__brand {
-  margin: 0 0 var(--space-2) 0;
-  font-size: 1.8rem;
-  letter-spacing: .2px;
-}
-
-.hero__title {
-  margin: 0 0 var(--space-2) 0;
-  font-weight: 700;
-  color: var(--brand-2);
-}
-
-.hero__desc {
-  margin: 0;
-  color: var(--muted);
-}
-
-/* ---------------------------
-   CARDS / FORM CONTAINER
---------------------------- */
-.card {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow);
-}
-
-.card--soft {
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--line);
+/* Form card container */
+.form-card {
   background: #fff;
+  border: 1px solid #cfcfcf;
+  border-radius: 6px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
-/* The main form card */
-.form {
-  padding: var(--space-5);
+/* Title like the screenshot (simple underline feel) */
+.form-title {
+  margin: 0 0 10px 0;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  text-decoration: underline;
 }
 
-/* ---------------------------
-   SECTIONS
---------------------------- */
-.section {
-  padding: var(--space-4) 0;
-  border-top: 1px solid var(--line);
+/* Intro paragraph */
+.form-intro {
+  margin: 0 0 18px 0;
+  font-size: 14px;
 }
 
-.section:first-of-type {
-  border-top: 0;
-  padding-top: 0;
-}
-
-.section__title {
-  margin: 0 0 var(--space-3) 0;
-  font-size: 1.1rem;
-  color: var(--brand-2);
-}
-
-.hint {
-  margin: 0 0 var(--space-3) 0;
-  color: var(--muted);
-}
-
-/* ---------------------------
-   FIELDS
---------------------------- */
+/* Generic field block */
 .field {
-  margin-bottom: var(--space-4);
+  margin: 14px 0;
 }
 
-.label {
+/* Inline label text */
+.label-inline {
+  margin-right: 8px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.block {
   display: block;
-  margin-bottom: var(--space-2);
+  margin-bottom: 8px;
   font-weight: 600;
 }
 
-.input,
-.textarea {
+/* Inputs / textareas */
+input[type="text"],
+input[type="date"],
+textarea {
   width: 100%;
-  max-width: 100%;
-  display: block;
-  padding: 12px 14px;
-  border: 1px solid var(--input-border);
-  border-radius: var(--radius-sm);
-  background: var(--input-bg);
-  color: var(--text);
-  outline: none;
-  transition: border-color .15s ease, box-shadow .15s ease;
+  padding: 8px 10px;
+  border: 1px solid #bdbdbd;
+  border-radius: 2px;
+  background: #f0f0f0;
+  font-size: 14px;
+  color: #111;
 }
 
-.input::placeholder,
-.textarea::placeholder {
-  color: #9aa3b2;
-}
+textarea { resize: vertical; }
 
-.input:focus,
-.textarea:focus {
-  border-color: var(--input-focus);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-}
-
-.textarea {
-  resize: vertical;
-}
-
-/* ---------------------------
-   CHOICES (RADIO/CHECKBOX)
---------------------------- */
-.choices {
+/* Inline small inputs for BP/Chol/Weight/Height */
+.field-inline-wrap {
   display: flex;
-  gap: var(--space-4);
-  flex-wrap: nowrap;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
 }
 
-.choices--wrap {
-  flex-wrap: wrap;
+.input-inline {
+  width: 160px;
+}
+
+.label-gap {
+  margin-left: 12px;
+}
+
+/* Sex & options */
+.field-inline {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .choice {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-weight: 500;
-  color: var(--text);
-  white-space: nowrap;
+  gap: 6px;
+  font-size: 14px;
 }
 
-.choice input {
-  transform: translateY(1px);
+/* Tables that look like simple questionnaire grids */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  margin-top: 8px;
 }
 
-/* ---------------------------
-   GRID / STACK HELPERS
---------------------------- */
-.grid {
-  display: grid;
-  gap: var(--space-4);
+.table th,
+.table td {
+  border: 1px solid #9e9e9e;
+  padding: 6px;
+  vertical-align: middle;
 }
 
-.grid--2 {
-  grid-template-columns: 1fr 1fr;
+.table th {
+  background: #efefef;
+  text-align: left;
+  font-weight: 600;
+  font-size: 14px;
 }
 
-.stack {
-  display: grid;
-  gap: var(--space-4);
+.table td input[type="text"] {
+  width: 100%;
+  border: 0;
+  padding: 6px;
+  background: #fafafa;
+  font-size: 14px;
 }
 
-@media (max-width: 800px) {
-  .grid--2 {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ---------------------------
-   ACTIONS
---------------------------- */
+/* Actions */
 .actions {
-  padding-top: var(--space-5);
-  border-top: 1px solid var(--line);
-  margin-top: var(--space-5);
+  margin-top: 18px;
+  text-align: right;
 }
 
 .btn {
   appearance: none;
-  border: 0;
-  background: var(--brand);
-  color: #fff;
-  font-weight: 700;
-  padding: 12px 16px;
-  border-radius: var(--radius-sm);
+  border: 1px solid #888;
+  background: #eaeaea;
+  padding: 8px 14px;
+  border-radius: 4px;
+  font-weight: 600;
   cursor: pointer;
-  transition: background .15s ease, transform .06s ease;
-  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25);
 }
 
-.btn:hover {
-  background: #2d6bee;
-}
+.btn:hover { background: #e2e2e2; }
 
-.btn:active {
-  transform: translateY(1px);
-}
+/* Safety: keep content within bounds */
+.form-card, .field, .table { overflow: hidden; }
 
-.smallprint {
-  margin: var(--space-2) 0 0 0;
-  color: var(--muted);
-  font-size: .95rem;
-}
-
-/* ---------------------------
-   SAFETY: KEEP INPUTS INSIDE
---------------------------- */
-form,
-.section,
-.field,
-.input,
-.textarea {
-  overflow: hidden;
-}
-
-/* Avoid any accidental horizontal scroll on mobile */
-html, body, .page-wrap {
-  overflow-x: hidden;
+/* Mobile tweaks */
+@media (max-width: 520px) {
+  .input-inline { width: 120px; }
 }
