@@ -3055,5 +3055,128 @@
 </script>
 <!-- END: GAS PDF submit -->
 
+
+<!-- FINAL OVERRIDE: lock "Submitting…" until redirect + blank email body (PDF only) -->
+<script>
+(function(){
+  var form = document.getElementById('intakeForm');
+  if (!form) return;
+
+  // Utility: status text
+  function setStatus(msg, ok) {
+    var box = document.getElementById('formStatus');
+    if (!box) return;
+    box.textContent = msg;
+    box.style.color = ok ? '#2e7d32' : '#b00020';
+    box.style.fontWeight = '600';
+  }
+
+  // Utility: filename for the PDF
+  function buildFilename() {
+    var dateStr = new Date().toISOString().slice(0,10);
+    return ('PowerUp-Intake-' + dateStr + '.pdf').replace(/\s+/g, '_');
+  }
+
+  // Convert Blob -> base64 (no prefix)
+  function blobToBase64(blob) {
+    return new Promise(function(resolve, reject){
+      var reader = new FileReader();
+      reader.onloadend = function(){
+        try {
+          var dataUrl = reader.result || '';
+          resolve((dataUrl.split(',')[1]) || '');
+        } catch(e){ reject(e); }
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  // Visual PDF from the actual form (as seen by the user)
+  async function generateVisualPdfBlob(element) {
+    var opt = {
+      margin: [10,10,10,10],
+      filename: buildFilename(),
+      image: { type: 'jpeg', quality: 0.95 },
+      html2canvas: { scale: 2, useCORS: true, logging: false, allowTaint: false },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['css','legacy'] }
+    };
+    return new Promise(function(resolve, reject) {
+      try {
+        html2pdf().set(opt).from(element).toPdf().get('pdf').then(function(pdf) {
+          try {
+            var blob = pdf.output('blob');
+            resolve(blob);
+          } catch (err) { reject(err); }
+        }).catch(reject);
+      } catch (err) { reject(err); }
+    });
+  }
+
+  // Our final override submit handler
+  async function overrideSubmit(e){
+    // Prevent any earlier submit handlers on this element
+    e.preventDefault();
+    if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+
+    var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+    if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Submitting…'; }
+    setStatus('Submitting your answers…', true);
+
+    var gasUrl = form.getAttribute('data-gas-url');
+    if (!gasUrl) {
+      setStatus('Missing Apps Script URL. Add data-gas-url to the form.', false);
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'SUBMIT'; }
+      return;
+    }
+
+    // Make the PDF
+    var pdfBase64 = null;
+    var filename = buildFilename();
+    try {
+      var blob = await generateVisualPdfBlob(form);
+      pdfBase64 = blob ? await blobToBase64(blob) : null;
+    } catch(err){
+      console.error('PDF generation failed:', err);
+    }
+
+    // We intentionally send an EMPTY answers object and a meta flag
+    // so the email body can be left blank on the Apps Script side.
+    var payload = {
+      type: 'intake_submission',
+      answers: {},                        // keep email body blank
+      meta: { emailBodyBlank: true },     // hint for your GAS to keep it blank
+      pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null
+    };
+
+    try {
+      var resp = await fetch(gasUrl, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+
+      if (resp.ok) {
+        // Do NOT revert the button text; keep "Submitting…" until redirect
+        setStatus('Submitted. Redirecting…', true);
+        // Small delay just so the user sees it, then move to Thank You
+        window.location.replace('https://cormacwallace4.github.io/PowerUpFormTest/thanks.html');
+      } else {
+        var t = await resp.text();
+        console.error('GAS error:', t);
+        setStatus('Submission failed. Please try again.', false);
+        if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'SUBMIT'; }
+      }
+    } catch (err) {
+      console.error('Network error:', err);
+      setStatus('Network error. Please try again later.', false);
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'SUBMIT'; }
+    }
+  }
+
+  // Bind our override at the very end so it wins; prevent earlier handlers from running
+  form.addEventListener('submit', overrideSubmit, true); // useCapture=true to catch early
+})();
+</script>
 </body>
 </html>
