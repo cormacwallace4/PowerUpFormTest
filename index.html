@@ -2651,6 +2651,9 @@
   }
 
   async function handleSubmit_GAS(e) {
+    try { e.stopImmediatePropagation && e.stopImmediatePropagation(); } catch(_){ }
+    try { e.stopPropagation && e.stopPropagation(); } catch(_){ }
+    try { e.preventDefault && e.preventDefault(); } catch(_){ }
     e.preventDefault();
 
     
@@ -2711,7 +2714,7 @@ var plainPairs = window.collectAllAnswersPairs(form);
         setStatus('Thank you! Your form has been submitted.', true);
         try { form.reset(); } catch (e) {}
         // Redirect to a thank-you page if you have one
-        setTimeout(function(){ window.location.href = '/thanks.html'; }, 600);
+        setTimeout(function(){ window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html'; }, 600);
       } else {
         const t = await resp.text();
         console.error('GAS error:', t);
@@ -3110,6 +3113,127 @@ var plainPairs = window.collectAllAnswersPairs(form);
 <!-- END: ORDERED & COMPLETE ANSWER COLLECTORS -->
 
 
+<!-- BEGIN: READABLE-PDF BUILDER -->
+<script>
+(function(){
+  if (!window._readableBuilderInstalled) {
+    window._readableBuilderInstalled = true;
+    function clean(s){ return String(s||'').replace(/\s+/g,' ').trim(); }
+    var collectPairs = window.collectAllAnswersPairs || function(form){ return []; };
+    window.buildReadablePdfLines = function(form){
+      var pairs = collectPairs(form);
+      var lines = [];
+      var sectionRows = Object.create(null);
+      function pushBlank(){ lines.push(''); }
+      function push(line){ if (line!=null) lines.push(line); }
+      function bucketRow(section, rowIndex, colLabel, value){
+        if (!sectionRows[section]) sectionRows[section] = {};
+        if (!sectionRows[section][rowIndex]) sectionRows[section][rowIndex] = {};
+        sectionRows[section][rowIndex][colLabel] = value;
+      }
+      pairs.forEach(function(p){
+        var label = p[0], value = p[1];
+        var s = clean(label);
+        var v = String(value==null?'':value);
+        if (/\s-\sRow\s\d+\s-\s/i.test(s)) {
+          var m = s.match(/^(.*)\s-\sRow\s(\d+)\s-\s(.*)$/i);
+          if (m) {
+            var section = clean(m[1]);
+            var rowIdx = m[2];
+            var col = clean(m[3]);
+            if (v !== '') bucketRow(section, rowIdx, col, v);
+          }
+          return;
+        }
+        if ( (s.toLowerCase().includes('sex') || s.toLowerCase().includes('pregnan') || s.toLowerCase().includes('breast')) && v !== '' ) {
+          push(s + ': ' + v); pushBlank(); return;
+        }
+        if (s.toLowerCase().startsWith('father') || s.toLowerCase().startsWith('mother') || s.toLowerCase().startsWith('brother') || s.toLowerCase().startsWith('own children')) {
+          if (v !== '') { push(s + ': ' + v); pushBlank(); } return;
+        }
+        if (v !== '') { push(s + ': ' + v); pushBlank(); return; }
+      });
+      Object.keys(sectionRows).forEach(function(section){
+        var sec = section.toLowerCase();
+        if (sec.includes('five major health concerns')) {
+          var rows = sectionRows[section];
+          var keys = Object.keys(rows).sort(function(a,b){ return Number(a)-Number(b); });
+          var printedAny = false; var linesForSec = [];
+          keys.forEach(function(k, idx){
+            var row = rows[k] || {};
+            var hc = row['Health concern'] || row['Health Concern'] || row['Concern'] || '';
+            var dur = row['Duration'] || '';
+            if (hc || dur) {
+              printedAny = true;
+              var n = idx+1;
+              var line = 'Health Concern ' + n + ': ' + (hc || '') + (dur ? ' Duration: ' + dur : '');
+              linesForSec.push(line);
+            }
+          });
+          if (printedAny) { push(section + ':'); linesForSec.forEach(push); pushBlank(); }
+        }
+      });
+      Object.keys(sectionRows).forEach(function(section){
+        var sec = section.toLowerCase();
+        if (sec.includes('previous health issues')) {
+          var rows = sectionRows[section];
+          var keys = Object.keys(rows).sort(function(a,b){ return Number(a)-Number(b); });
+          var printedAny = false; var linesForSec = [];
+          keys.forEach(function(k, idx){
+            var row = rows[k] || {};
+            var issue = row['Health issue'] || row['Issue'] || '';
+            var dur = row['Duration'] || '';
+            var managed = row['How you managed it'] || row['How you managed'] || row['How managed'] || '';
+            var started = row['When did it start'] || row['When started'] || '';
+            if (issue || dur || managed || started) {
+              printedAny = true;
+              var n = idx+1; var parts = [];
+              if (issue) parts.push('Issue: ' + issue);
+              if (dur) parts.push('Duration: ' + dur);
+              if (managed) parts.push('Managed: ' + managed);
+              if (started) parts.push('Started: ' + started);
+              linesForSec.push('Health Issue ' + n + ': ' + parts.join(' '));
+            }
+          });
+          if (printedAny) { push(section + ':'); linesForSec.forEach(push); pushBlank(); }
+        }
+      });
+      Object.keys(sectionRows).forEach(function(section){
+        var sec = section.toLowerCase();
+        if (sec.includes('current medication')) {
+          var rows = sectionRows[section];
+          var keys = Object.keys(rows).sort(function(a,b){ return Number(a)-Number(b); });
+          var printedAny = false; var linesForSec = [];
+          keys.forEach(function(k, idx){
+            var row = rows[k] || {};
+            var name = row['Name'] || '';
+            var dose = row['Dose'] || '';
+            var dur = row['Duration you’ve been taking them'] || row['Duration you\'ve been taking them'] || row['Duration'] || '';
+            if (name || dose || dur) {
+              printedAny = true;
+              var n = idx+1; var parts = [];
+              if (name) parts.push('Name: ' + name);
+              if (dose) parts.push('Dose: ' + dose);
+              if (dur) parts.push('Duration: ' + dur);
+              linesForSec.push('Medication ' + n + ': ' + parts.join(' '));
+            }
+          });
+          if (printedAny) { push(section + ':'); linesForSec.forEach(push); pushBlank(); }
+        }
+      });
+      return lines;
+    };
+    window.answersToLinesFromEither = function(input){
+      var form = document.getElementById('intakeForm') || document.querySelector('form');
+      return window.buildReadablePdfLines(form);
+    };
+  }
+})();
+</script>
+<!-- END: READABLE-PDF BUILDER -->
+
+
+
 <!-- BEGIN: GAS PDF submit -->
 <script>
 // BEGIN GAS SUBMIT
@@ -3181,6 +3305,9 @@ var plainPairs = window.collectAllAnswersPairs(form);
   }
 
   async function handleSubmit_GAS(e) {
+    try { e.stopImmediatePropagation && e.stopImmediatePropagation(); } catch(_){ }
+    try { e.stopPropagation && e.stopPropagation(); } catch(_){ }
+    try { e.preventDefault && e.preventDefault(); } catch(_){ }
     e.preventDefault();
 
     
@@ -3366,6 +3493,9 @@ setStatus('Submitting your answers…', true);
   }
 
   async function handleSubmit_GAS(e) {
+    try { e.stopImmediatePropagation && e.stopImmediatePropagation(); } catch(_){ }
+    try { e.stopPropagation && e.stopPropagation(); } catch(_){ }
+    try { e.preventDefault && e.preventDefault(); } catch(_){ }
     e.preventDefault();
 
     
