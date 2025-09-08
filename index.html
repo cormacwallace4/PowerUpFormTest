@@ -2678,6 +2678,7 @@ var submitBtn = form.querySelector('button[type="submit"]');
     var plain = window.collectAllAnswers(form);
 
     var plainPairs = window.collectAllAnswersPairs(form);
+var plainPairs = window.collectAllAnswersPairs(form);
 // Attach the PDF as base64 if we have it
     let pdfBase64 = null;
     let filename = buildFilename();
@@ -2914,6 +2915,201 @@ var submitBtn = form.querySelector('button[type="submit"]');
 </script>
 <!-- END: ORDER-PRESERVING HELPERS -->
 
+
+<!-- BEGIN: ORDERED & COMPLETE ANSWER COLLECTORS -->
+<script>
+(function(){
+  if (!window._enhancedCollectorsInstalled) {
+    window._enhancedCollectorsInstalled = true;
+
+    // Util: get label text for a control
+    window.labelFor = window.labelFor || function(el){
+      if (!el) return '';
+      var id = el.id;
+      if (id) {
+        var lab = document.querySelector('label[for="' + id + '"]');
+        if (lab) return (lab.textContent || '').trim();
+      }
+      var wrap = el.closest && el.closest('.field');
+      if (wrap) {
+        var lab2 = wrap.querySelector && wrap.querySelector('label');
+        if (lab2) return (lab2.textContent || '').trim();
+      }
+      return (el.name || id || '').trim();
+    };
+
+    // Collect ordered [label, value] pairs in DOM order.
+    window.collectAllAnswersPairs = function(form){
+      var pairs = [];
+      var seenKeys = Object.create(null);
+
+      function pushPair(label, value){
+        if (label == null) label = '';
+        if (value == null) value = '';
+        // Keep duplicates if labels differ, but avoid repeating exact same label twice in a row.
+        pairs.push([String(label), value]);
+        // Insert a blank line after each logical item for readability
+        pairs.push(['', '']);
+      }
+
+      // Helper: text content cleanup
+      function cleanText(s){
+        return String(s || '').replace(/\s+/g, ' ').trim();
+      }
+
+      // Helper: find nearest field label text for a node
+      function sectionLabelFrom(node){
+        var field = node.closest && node.closest('.field');
+        if (!field) return '';
+        var lab = field.querySelector('label');
+        if (lab) return cleanText(lab.textContent || '');
+        return '';
+      }
+
+      // 1) Walk .field blocks in order; inside each, handle tables, inline radios, and free inputs
+      var fieldBlocks = form.querySelectorAll('.field');
+      fieldBlocks.forEach(function(block){
+        // A) Handle any RADIO GROUPS outside tables (e.g., Sex, Pregnancy)
+        var inlineLabelEl = block.querySelector('.label-inline');
+        var radiosOutsideTables = [];
+        var radioEls = block.querySelectorAll('input[type="radio"]');
+        if (radioEls.length) {
+          // Skip radios that are inside questionnaire scoring tables (those have th 0/1/2/3)
+          var insideScoreTable = false;
+          radioEls.forEach(function(r){
+            if (r.closest('table')) insideScoreTable = true;
+          });
+          if (!insideScoreTable) {
+            // Group by name
+            var byName = {};
+            radioEls.forEach(function(r){
+              byName[r.name] = byName[r.name] || [];
+              byName[r.name].push(r);
+            });
+            Object.keys(byName).forEach(function(name){
+              var group = byName[name];
+              var labelText = inlineLabelEl ? cleanText(inlineLabelEl.textContent) : (sectionLabelFrom(block) || name);
+              var chosen = null;
+              var allDigits = true;
+              group.forEach(function(r){ if (r.checked) chosen = r.value; });
+              group.forEach(function(r){ if (!/^\d+$/.test(String(r.value))) allDigits = false; });
+              if (chosen == null) chosen = allDigits ? '0' : '';
+              pushPair(labelText, chosen);
+            });
+          }
+        }
+
+        // B) Handle TABLES with inputs (text) => build row-wise pairs using column headers
+        var tables = block.querySelectorAll('table.table');
+        tables.forEach(function(tbl){
+          var headers = [];
+          tbl.querySelectorAll('thead th').forEach(function(th, idx){
+            headers[idx] = cleanText(th.textContent || '');
+          });
+
+          // Determine section label from the block's first label, or fallback
+          var sectionLabel = sectionLabelFrom(tbl);
+          if (!sectionLabel) sectionLabel = sectionLabelFrom(block);
+
+          // Case 1: Scoring tables (0/1/2/3 radios) — collect per row question
+          var hasRadios = tbl.querySelector('input[type="radio"]');
+          var hasTextInputs = tbl.querySelector('input[type="text"], textarea, select');
+          if (hasRadios && !hasTextInputs) {
+            var rows = tbl.querySelectorAll('tbody tr');
+            rows.forEach(function(tr){
+              var qCell = tr.querySelector('td');
+              var questionText = qCell ? cleanText(qCell.textContent || '') : '';
+              var radios = tr.querySelectorAll('input[type="radio"]');
+              var chosen = null, allDigits = true;
+              radios.forEach(function(r){ if (r.checked) chosen = r.value; });
+              radios.forEach(function(r){ if (!/^\d+$/.test(String(r.value))) allDigits = false; });
+              if (chosen == null) chosen = allDigits ? '0' : '';
+              pushPair(questionText || sectionLabel, chosen);
+            });
+            return;
+          }
+
+          // Case 2: Data tables (e.g., Health concerns, Previous issues, Medications)
+          if (hasTextInputs) {
+            var rowIndex = 0;
+            tbl.querySelectorAll('tbody tr').forEach(function(tr){
+              rowIndex += 1;
+              var cells = tr.querySelectorAll('td');
+              cells.forEach(function(td, ci){
+                var inp = td.querySelector('input, textarea, select');
+                if (!inp) return;
+                var colHeader = headers[ci] || '';
+                var labelText = sectionLabel ? (sectionLabel + " - Row " + rowIndex + (colHeader ? " - " + colHeader : "")) : (colHeader || ("Row " + rowIndex));
+                var val = (inp.value != null ? String(inp.value) : '');
+                pushPair(labelText, val);
+              });
+            });
+            return;
+          }
+        });
+
+        // C) Handle standalone inputs/textareas/selects in this block (non-hidden, non-radio)
+        var singles = block.querySelectorAll('input:not([type="radio"]):not([type="checkbox"]), textarea, select');
+        singles.forEach(function(el){
+          if (el.type === 'hidden') return;
+          // Skip ones that are already inside a table (already handled)
+          if (el.closest('table')) return;
+          var key = window.labelFor(el) || el.name || el.id || '';
+          var val = (el.value != null ? String(el.value) : '');
+          if (!key) return;
+          pushPair(key, val);
+        });
+      });
+
+      return pairs;
+    };
+
+    // Build object from ordered pairs (for JSON payload)
+    window.collectAllAnswers = function(form){
+      var obj = {};
+      var pairs = window.collectAllAnswersPairs(form);
+      pairs.forEach(function(p){
+        var k = p[0];
+        var v = p[1];
+        if (k && k.trim()) obj[k] = v;
+      });
+      return obj;
+    };
+
+    // Convert either an object or [label, value] pairs into readable lines (keeps order if pairs used)
+    window.answersToLinesFromEither = function(input){
+      var lines = [];
+      if (Array.isArray(input)) {
+        input.forEach(function(pair){
+          var k = pair[0], v = pair[1];
+          if (k === '' && v === '') {
+            lines.push(''); // blank separator
+          } else {
+            if (Array.isArray(v)) v = v.join(', ');
+            if (v == null) v = '';
+            lines.push(k + ': ' + v);
+          }
+        });
+        return lines;
+      }
+      if (input && typeof input === 'object') {
+        Object.keys(input).forEach(function(k){
+          var v = input[k];
+          if (Array.isArray(v)) v = v.join(', ');
+          if (v == null) v = '';
+          lines.push(k + ': ' + v);
+          lines.push(''); // separator
+        });
+        return lines;
+      }
+      return lines;
+    };
+  }
+})();
+</script>
+<!-- END: ORDERED & COMPLETE ANSWER COLLECTORS -->
+
+
 <!-- BEGIN: GAS PDF submit -->
 <script>
 // BEGIN GAS SUBMIT
@@ -3021,6 +3217,7 @@ var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]'
     var plain = window.collectAllAnswers(form);
 
     var plainPairs = window.collectAllAnswersPairs(form);
+var plainPairs = window.collectAllAnswersPairs(form);
 setStatus('Submitting your answers…', true);
     if (submitBtn) submitBtn.textContent = 'Submitting…'; lockSubmitButton(submitBtn); lockSubmitButton(submitBtn);
 
@@ -3180,6 +3377,7 @@ var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]'
     var plain = window.collectAllAnswers(form);
 
     var plainPairs = window.collectAllAnswersPairs(form);
+var plainPairs = window.collectAllAnswersPairs(form);
 var pdfBase64 = null;
     var filename = buildFilename();
     var usedFallback = false;
