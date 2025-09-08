@@ -2859,21 +2859,8 @@ var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]'
     var plain = formDataToObject(fd);
     var labelMap = buildLabelMap(form);
     var pdfBase64 = await generateTextPdfBase64(labelMap, plain);
-
-    var pdfBase64 = null;
     var filename = buildFilename();
-    var usedFallback = false;
-
-    try {
-      var visualBlob = await generateVisualPdfBlob(form);
-      if (visualBlob) {
-        pdfBase64 = await blobToBase64(visualBlob);
-      }
-    } catch (err) {
-      console.warn('Visual PDF failed, will try fallback:', err);
-    }
-
-    if (!pdfBase64 || pdfBase64.length < 1000) {
+if (!pdfBase64 || pdfBase64.length < 1000) {
       try {
         usedFallback = true;
         pdfBase64 = await generateFallbackPdfBase64(plain);
@@ -3051,7 +3038,7 @@ function answersToHumanLines(answers, labelMap) {
 
 async function generateTextPdfBase64(labelMap, answers) {
   try {
-    var jsPDFCtor = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : null;
+    var jsPDFCtor = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : (window.jsPDF || null);
     if (!jsPDFCtor) throw new Error('jsPDF not available on page.');
     const doc = new jsPDFCtor({ unit: 'pt', format: 'a4' });
     const marginLeft = 40, marginTop = 50, lineHeight = 18, maxWidth = 515;
