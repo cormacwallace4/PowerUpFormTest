@@ -2571,7 +2571,7 @@
           body: data
         });
 
-        if (resp.ok) { _ok = true;
+        if (resp.ok) {
           setStatus('Thank you! Your form has been submitted' + (pdfBlob ? ' with a PDF attached.' : '.'), true);
 
           // Nice UX: show a simple success, then reset form
@@ -2651,7 +2651,6 @@
   }
 
   async function handleSubmit_GAS(e) {
-    var _ok = false;
     e.preventDefault();
 
     var submitBtn = form.querySelector('button[type="submit"]');
@@ -2700,13 +2699,12 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           type: 'intake_submission',
-          answers: {},
-          meta: { emailBodyBlank: true },
+          answers: plain,
           pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null
         })
       });
 
-      if (resp.ok) { _ok = true;
+      if (resp.ok) {
         setStatus('Thank you! Your form has been submitted.', true);
         try { form.reset(); } catch (e) {}
         // Redirect to a thank-you page if you have one
@@ -2720,7 +2718,7 @@
       console.error('Network error:', err);
       setStatus('Network error. Please try again later.', false);
     } finally {
-      if (!_ok && submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'SUBMIT'; }
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'SUBMIT'; }
     }
   }
 
@@ -2801,7 +2799,6 @@
   }
 
   async function handleSubmit_GAS(e) {
-    var _ok = false;
     e.preventDefault();
 
     var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
@@ -2845,12 +2842,11 @@
         // No Content-Type header to avoid CORS preflight
         body: JSON.stringify({
           type: 'intake_submission',
-          answers: {},
-          meta: { emailBodyBlank: true },
+          answers: plain,
           pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null
         })
       });
-      if (resp.ok) { _ok = true;
+      if (resp.ok) {
         setStatus('Thank you! Your form has been submitted.', true);
         try { form.reset(); } catch (e) {}
         setTimeout(function(){ window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html'; }, 600);
@@ -2863,7 +2859,7 @@
       console.error('Network error:', err);
       setStatus('Network error. Please try again later.', false);
     } finally {
-      if (!_ok && submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'SUBMIT'; }
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'SUBMIT'; }
     }
   }
 
@@ -2985,7 +2981,6 @@
   }
 
   async function handleSubmit_GAS(e) {
-    var _ok = false;
     e.preventDefault();
 
     var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
@@ -3032,13 +3027,12 @@
         method: 'POST',
         body: JSON.stringify({
           type: 'intake_submission',
-          answers: {},
-          meta: { emailBodyBlank: true },
+          answers: plain,
           pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null,
           meta: { usedFallback: usedFallback, base64Len: pdfBase64 ? pdfBase64.length : 0 }
         })
       });
-      if (resp.ok) { _ok = true;
+      if (resp.ok) {
         setStatus('Thank you! Your form has been submitted.', true);
         try { form.reset(); } catch (e) {}
         setTimeout(function(){ window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html'; }, 600);
@@ -3051,7 +3045,7 @@
       console.error('Network error:', err);
       setStatus('Network error. Please try again later.', false);
     } finally {
-      if (!_ok && submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'SUBMIT'; }
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'SUBMIT'; }
     }
   }
 
