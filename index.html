@@ -3061,5 +3061,17 @@ var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]'
 </script>
 <!-- END: GAS PDF submit -->
 
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var forms = document.querySelectorAll('#intakeForm');
+  if (forms && forms.length > 1) {
+    for (var i = 1; i < forms.length; i++) {
+      forms[i].parentNode && forms[i].parentNode.removeChild(forms[i]);
+    }
+  }
+});
+</script>
+
 </body>
 </html>
