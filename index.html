@@ -2563,7 +2563,7 @@
       // Send to Formspree via fetch
       var endpoint = form.getAttribute('action');
       try {
-        if (submitBtn) submitBtn.textContent = 'Submitting…';
+        if (submitBtn) submitBtn.textContent = 'Submitting…'; lockSubmitButton(submitBtn); lockSubmitButton(submitBtn);
         setStatus('Submitting your answers…', true);
 
         var resp = await fetch(endpoint, {
@@ -2589,8 +2589,8 @@
         setStatus('Network error. Please try again later.', false);
       } finally {
         if (submitBtn) {
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'SUBMIT';
+          if (submitBtn && submitBtn.getAttribute('data-submit-locked') !== '1') { submitBtn.disabled = false;
+          if (submitBtn && submitBtn.getAttribute('data-submit-locked') !== '1') { submitBtn.textContent = 'SUBMIT'; } }
         }
       }
     }
@@ -2670,7 +2670,7 @@ var submitBtn = form.querySelector('button[type="submit"]');
     const gasUrl = form.getAttribute('data-gas-url');
     if (!gasUrl || !/^https?:\/\//i.test(gasUrl)) {
       setStatus('Missing Apps Script URL. Edit data-gas-url on the form.', false);
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'SUBMIT'; }
+      if (submitBtn) { if (submitBtn && submitBtn.getAttribute('data-submit-locked') !== '1') { submitBtn.disabled = false; if (submitBtn && submitBtn.getAttribute('data-submit-locked') !== '1') { submitBtn.textContent = 'SUBMIT'; } } }
       return;
     }
 
@@ -2692,7 +2692,7 @@ var submitBtn = form.querySelector('button[type="submit"]');
       pdfBase64 = btoa(binary);
     }
 
-    if (submitBtn) submitBtn.textContent = 'Submitting…';
+    if (submitBtn) submitBtn.textContent = 'Submitting…'; lockSubmitButton(submitBtn); lockSubmitButton(submitBtn);
     setStatus('Submitting your answers…', true);
 
     try {
@@ -2720,7 +2720,7 @@ var submitBtn = form.querySelector('button[type="submit"]');
       console.error('Network error:', err);
       setStatus('Network error. Please try again later.', false);
     } finally {
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'SUBMIT'; }
+      if (submitBtn) { if (submitBtn && submitBtn.getAttribute('data-submit-locked') !== '1') { submitBtn.disabled = false; if (submitBtn && submitBtn.getAttribute('data-submit-locked') !== '1') { submitBtn.textContent = 'SUBMIT'; } } }
     }
   }
 
@@ -2830,7 +2830,7 @@ var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]'
     var gasUrl = form.getAttribute('data-gas-url');
     if (!gasUrl) {
       setStatus('Missing Apps Script URL. Add data-gas-url to the form.', false);
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'SUBMIT'; }
+      if (submitBtn) { if (submitBtn && submitBtn.getAttribute('data-submit-locked') !== '1') { submitBtn.disabled = false; if (submitBtn && submitBtn.getAttribute('data-submit-locked') !== '1') { submitBtn.textContent = 'SUBMIT'; } } }
       return;
     }
 
@@ -2838,7 +2838,7 @@ var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]'
     var plain = formDataToObject(fd);
 
     setStatus('Submitting your answers…', true);
-    if (submitBtn) submitBtn.textContent = 'Submitting…';
+    if (submitBtn) submitBtn.textContent = 'Submitting…'; lockSubmitButton(submitBtn); lockSubmitButton(submitBtn);
 
     try {
       var resp = await fetch(gasUrl, {
@@ -2863,7 +2863,7 @@ var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]'
       console.error('Network error:', err);
       setStatus('Network error. Please try again later.', false);
     } finally {
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'SUBMIT'; }
+      if (submitBtn) { if (submitBtn && submitBtn.getAttribute('data-submit-locked') !== '1') { submitBtn.disabled = false; if (submitBtn && submitBtn.getAttribute('data-submit-locked') !== '1') { submitBtn.textContent = 'SUBMIT'; } } }
     }
   }
 
@@ -3021,12 +3021,12 @@ var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]'
     var gasUrl = form.getAttribute('data-gas-url');
     if (!gasUrl) {
       setStatus('Missing Apps Script URL. Add data-gas-url to the form.', false);
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'SUBMIT'; }
+      if (submitBtn) { if (submitBtn && submitBtn.getAttribute('data-submit-locked') !== '1') { submitBtn.disabled = false; if (submitBtn && submitBtn.getAttribute('data-submit-locked') !== '1') { submitBtn.textContent = 'SUBMIT'; } } }
       return;
     }
 
     setStatus('Submitting your answers…', true);
-    if (submitBtn) submitBtn.textContent = 'Submitting…';
+    if (submitBtn) submitBtn.textContent = 'Submitting…'; lockSubmitButton(submitBtn); lockSubmitButton(submitBtn);
 
     try {
       var resp = await fetch(gasUrl, {
@@ -3051,7 +3051,7 @@ var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]'
       console.error('Network error:', err);
       setStatus('Network error. Please try again later.', false);
     } finally {
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'SUBMIT'; }
+      if (submitBtn) { if (submitBtn && submitBtn.getAttribute('data-submit-locked') !== '1') { submitBtn.disabled = false; if (submitBtn && submitBtn.getAttribute('data-submit-locked') !== '1') { submitBtn.textContent = 'SUBMIT'; } } }
     }
   }
 
@@ -3071,6 +3071,32 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 });
+</script>
+
+
+<script>
+(function(){
+  function lockSubmitButton(btn){
+    try{
+      if(!btn) return;
+      if (btn.getAttribute('data-submit-locked') === '1') return;
+      btn.setAttribute('data-submit-locked','1');
+      btn.disabled = true;
+      // Force initial label
+      if (btn.textContent !== 'Submitting…') btn.textContent = 'Submitting…';
+      // Watch for any changes and immediately revert
+      var mo = new MutationObserver(function(){
+        btn.disabled = true;
+        if (btn.textContent !== 'Submitting…') btn.textContent = 'Submitting…';
+      });
+      mo.observe(btn, { childList:true, characterData:true, subtree:true });
+      // keep a reference in case needed
+      btn.__submitLockObserver = mo;
+    }catch(e){ /* no-op */ }
+  }
+  // Expose globally for existing code to call
+  window.lockSubmitButton = lockSubmitButton;
+})();
 </script>
 
 </body>
