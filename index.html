@@ -2675,8 +2675,7 @@ var submitBtn = form.querySelector('button[type="submit"]');
     }
 
     // Collect all answers
-    var data = new FormData(form);
-    var plain = formDataToObject(data);
+    var plain = window.collectAllAnswers(form);
 
     // Attach the PDF as base64 if we have it
     let pdfBase64 = null;
@@ -2729,6 +2728,83 @@ var submitBtn = form.querySelector('button[type="submit"]');
 })();
 </script>
 
+
+<!-- BEGIN: INCLUDE-ALL-QUESTIONS HELPERS -->
+<script>
+// Global helpers to ensure EVERY question is included in the payload/PDF.
+// Radios in the scoring tables (0/1/2/3) default to 0 when unanswered.
+(function(){
+  if (!window.collectAllAnswers) {
+    window.labelFor = function(el){
+      if (!el) return '';
+      var id = el.id;
+      if (id) {
+        var lab = document.querySelector('label[for="' + id + '"]');
+        if (lab) return (lab.textContent || '').trim();
+      }
+      var wrap = el.closest && el.closest('.field');
+      if (wrap) {
+        var lab2 = wrap.querySelector && wrap.querySelector('label');
+        if (lab2) return (lab2.textContent || '').trim();
+      }
+      return (el.name || id || '').trim();
+    };
+
+    window.collectAllAnswers = function(form){
+      var answers = {};
+
+      // 1) Any radio rows inside questionnaire tables => default to 0 if none selected
+      var rows = form.querySelectorAll('table.table tbody tr');
+      rows.forEach(function(tr){
+        var radios = tr.querySelectorAll('input[type="radio"]');
+        if (radios && radios.length) {
+          var firstCell = tr.querySelector('td');
+          var questionText = '';
+          if (firstCell) questionText = (firstCell.textContent || '').trim().replace(/\s+/g, ' ');
+          if (!questionText) {
+            // Fallback: use the radio name if no readable text
+            questionText = (radios[0].name || '').trim();
+          }
+          var chosen = null;
+          radios.forEach(function(r){ if (r.checked) chosen = r.value; });
+          if (chosen == null) {
+            // Only force 0 for 0/1/2/3 style rows (their values are digits 0..3)
+            var allDigits = true;
+            radios.forEach(function(r){ if (!/^\d+$/.test(String(r.value))) allDigits = false; });
+            chosen = allDigits ? '0' : '';
+          }
+          if (questionText) answers[questionText] = chosen;
+        }
+      });
+
+      // 2) All non-radio fields (text, textarea, select). Always include, even if blank.
+      var fields = form.querySelectorAll('input:not([type="radio"]):not([type="checkbox"]), textarea, select');
+      fields.forEach(function(el){
+        if (el.type === 'hidden') return;
+        var key = window.labelFor(el) || el.name || el.id || '';
+        if (!key) return;
+        var val = (el.value != null ? String(el.value) : '');
+        if (answers[key] === undefined) answers[key] = val;
+      });
+
+      return answers;
+    };
+
+    // A global stringifier used by some fallback PDF generators
+    window.answersToLinesGlobal = function(obj){
+      var lines = [];
+      Object.keys(obj).forEach(function(k){
+        var v = obj[k];
+        if (Array.isArray(v)) v = v.join(', ');
+        if (v == null) v = '';
+        lines.push(k + ': ' + v);
+      });
+      return lines;
+    };
+  }
+})();
+</script>
+<!-- END: INCLUDE-ALL-QUESTIONS HELPERS -->
 
 <!-- BEGIN: GAS PDF submit -->
 <script>
@@ -2834,8 +2910,7 @@ var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]'
       return;
     }
 
-    var fd = new FormData(form);
-    var plain = formDataToObject(fd);
+    var plain = window.collectAllAnswers(form);
 
     setStatus('Submitting your answers…', true);
     if (submitBtn) submitBtn.textContent = 'Submitting…'; lockSubmitButton(submitBtn); lockSubmitButton(submitBtn);
@@ -2993,8 +3068,7 @@ var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]'
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Generating PDF…'; }
     setStatus('Generating PDF of your answers…', true);
 
-    var fd = new FormData(form);
-    var plain = formDataToObject(fd);
+    var plain = window.collectAllAnswers(form);
 
     var pdfBase64 = null;
     var filename = buildFilename();
