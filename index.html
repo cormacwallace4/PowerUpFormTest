@@ -3684,5 +3684,23 @@ document.addEventListener('DOMContentLoaded', function () {
 })();
 </script>
 
+
+<script>
+// FINAL SAFETY WIRING: ensure submit is intercepted and sent via Apps Script
+(function(){
+  var frm = document.getElementById('intakeForm');
+  if (!frm) return;
+  if (!window.__wiredSubmitGAS) { window.__wiredSubmitGAS = true; frm.addEventListener('submit', handleSubmit_GAS); }
+  // Capture-phase guard to prevent native POST in case any other script fails
+  document.addEventListener('submit', function(e){
+    var t = e.target;
+    if (t && t.id === 'intakeForm') {
+      try { e.preventDefault(); } catch(_){}
+      handleSubmit_GAS(e);
+    }
+  }, true);
+})();
+</script>
+
 </body>
 </html>
