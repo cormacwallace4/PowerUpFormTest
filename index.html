@@ -2650,6 +2650,66 @@
     return obj;
   }
 
+
+  // NEW: get label text for standard inputs (text, textarea, select)
+  function labelFor(el) {
+    if (!el) return '';
+    var id = el.id;
+    if (id) {
+      var lab = document.querySelector('label[for="' + id + '"]');
+      if (lab) return lab.textContent.trim();
+    }
+    var wrap = el.closest('.field');
+    if (wrap) {
+      var lab2 = wrap.querySelector('label');
+      if (lab2) return lab2.textContent.trim();
+    }
+    return (el.name || id || '').trim();
+  }
+
+  // NEW: build a complete answers object, including unanswered; radios default to 0
+  function collectAllAnswers(form) {
+    var answers = {};
+
+    // 1) Handle all radio questions in table rows, using human-readable question text
+    var rows = form.querySelectorAll('table.table tbody tr');
+    rows.forEach(function(tr){
+      var qCell = tr.querySelector('td:first-child');
+      var radios = tr.querySelectorAll('input[type="radio"][name^="q"]');
+      if (qCell && radios.length) {
+        var questionText = qCell.textContent.trim().replace(/\s+/g, ' ');
+        var chosen = null;
+        radios.forEach(function(r){ if (r.checked) chosen = r.value; });
+        if (chosen == null) chosen = '0'; // default to 0 if unanswered
+        answers[questionText] = chosen;
+      }
+    });
+
+    // 2) Handle non-radio fields (text, textarea, select) — include even if blank
+    var fields = form.querySelectorAll('input:not([type="radio"]):not([type="checkbox"]), textarea, select');
+    fields.forEach(function(el){
+      if (el.type === 'hidden') return;
+      var key = labelFor(el);
+      if (!key) key = el.name || el.id || '';
+      if (!key) return;
+      var val = (el.value != null ? String(el.value) : '');
+      if (answers[key] === undefined) answers[key] = val;
+    });
+
+    return answers;
+  }
+
+  function answersToLines(obj) {
+    var lines = [];
+    Object.keys(obj).forEach(function(k){
+      var v = obj[k];
+      if (Array.isArray(v)) v = v.join(', ');
+      if (v == null) v = '';
+      lines.push(k + ': ' + v);
+    });
+    return lines;
+  }
+
   async function handleSubmit_GAS(e) {
     e.preventDefault();
 
@@ -2676,7 +2736,7 @@ var submitBtn = form.querySelector('button[type="submit"]');
 
     // Collect all answers
     var data = new FormData(form);
-    var plain = formDataToObject(data);
+    var plain = collectAllAnswers(form);
 
     // Attach the PDF as base64 if we have it
     let pdfBase64 = null;
