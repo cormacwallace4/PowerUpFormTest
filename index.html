@@ -2651,9 +2651,9 @@
   }
 
   async function handleSubmit_GAS(e) {
-    try { e.stopImmediatePropagation && e.stopImmediatePropagation(); } catch(_){ }
-    try { e.stopPropagation && e.stopPropagation(); } catch(_){ }
-    try { e.preventDefault && e.preventDefault(); } catch(_){ }
+    e.preventDefault();
+
+} catch(_){ }
     e.preventDefault();
 
     
@@ -2729,7 +2729,7 @@ var plainPairs = window.collectAllAnswersPairs(form);
   }
 
   // Bind our new handler
-  form.addEventListener('submit', handleSubmit_GAS);
+  if (!window.__wiredSubmitGAS) { window.__wiredSubmitGAS = true; form.addEventListener('submit', handleSubmit_GAS); }
 })();
 </script>
 
@@ -3305,9 +3305,9 @@ var plainPairs = window.collectAllAnswersPairs(form);
   }
 
   async function handleSubmit_GAS(e) {
-    try { e.stopImmediatePropagation && e.stopImmediatePropagation(); } catch(_){ }
-    try { e.stopPropagation && e.stopPropagation(); } catch(_){ }
-    try { e.preventDefault && e.preventDefault(); } catch(_){ }
+    e.preventDefault();
+
+} catch(_){ }
     e.preventDefault();
 
     
@@ -3375,7 +3375,7 @@ setStatus('Submitting your answers…', true);
     }
   }
 
-  form.addEventListener('submit', handleSubmit_GAS);
+  if (!window.__wiredSubmitGAS) { window.__wiredSubmitGAS = true; form.addEventListener('submit', handleSubmit_GAS); }
 
 })();
 // END GAS SUBMIT
@@ -3493,9 +3493,9 @@ setStatus('Submitting your answers…', true);
   }
 
   async function handleSubmit_GAS(e) {
-    try { e.stopImmediatePropagation && e.stopImmediatePropagation(); } catch(_){ }
-    try { e.stopPropagation && e.stopPropagation(); } catch(_){ }
-    try { e.preventDefault && e.preventDefault(); } catch(_){ }
+    e.preventDefault();
+
+} catch(_){ }
     e.preventDefault();
 
     
@@ -3567,7 +3567,7 @@ var pdfBase64 = null;
     }
   }
 
-  form.addEventListener('submit', handleSubmit_GAS);
+  if (!window.__wiredSubmitGAS) { window.__wiredSubmitGAS = true; form.addEventListener('submit', handleSubmit_GAS); }
 
 })();
 </script>
