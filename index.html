@@ -17,7 +17,7 @@
 <body>
   <main class="page">
     <div class="container">
-      <form class="card" id="intakeForm" action=\"#\" data-gas-url="https://script.google.com/macros/s/AKfycbwKEyiU_ssR5obtpJSHOs7J6eErX0ob6QpwvShPXn9a95Og5NDHt1AjaKNFYrvrZn7VMQ/exec" method="POST" enctype="multipart/form-data" novalidate>
+      <form class="card" id="intakeForm" action="#" data-gas-url="https://script.google.com/macros/s/AKfycbwKEyiU_ssR5obtpJSHOs7J6eErX0ob6QpwvShPXn9a95Og5NDHt1AjaKNFYrvrZn7VMQ/exec" method="POST" enctype="multipart/form-data" novalidate>
 <input type="hidden" name="_subject" value="New Intake Form Submission" />
 <div id="formStatus" aria-live="polite" style="margin:8px 0 0 0;"></div>
 
@@ -2473,7 +2473,7 @@
       </form>
     </div>
   </main>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-YcsIPo9STiQZ4t7O2s0O3x4r6b3SxG8u4mT2n8StlJf2h7g0i3bq8p8o7jv3pQhG6wQ0Q0KJ6o0kOq1Y+3Zf0A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
 <script>
   (function () {
     // CONFIG: tweak filename to include name/date if those fields exist
@@ -2571,12 +2571,19 @@
           body: data
         });
 
-        /* no-cors opaque response; assume success */
-{
-  setStatus('Thank you! Your form has been submitted.', true);
-  try { form.reset(); } catch (e) {}
-  setTimeout(function(){ window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html'; }, 600);
-}
+        if (resp.ok) {
+          setStatus('Thank you! Your form has been submitted' + (pdfBlob ? ' with a PDF attached.' : '.'), true);
+
+          // Nice UX: show a simple success, then reset form
+          try { form.reset(); } catch (e) {}
+
+          // If you have a thank-you page, you can redirect:
+          // window.location.href = '/thank-you.html';
+        } else {
+          var txt = await resp.text();
+          console.error('Formspree error:', txt);
+          setStatus('Submission failed. Please try again or contact us directly.', false);
+        }
       } catch (err) {
         console.error('Network error:', err);
         setStatus('Network error. Please try again later.', false);
@@ -2693,22 +2700,26 @@
   try {
     const resp = await fetch(gasUrl, {
       method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         type: 'intake_submission',
         answers: plain,
         pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null
       })
-    })
     });
 
-    /* no-cors opaque response; assume success */
-{
-  setStatus('Thank you! Your form has been submitted.', true);
-  try { form.reset(); } catch (e) {}
-  setTimeout(function(){ window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html'; }, 600);
-}
+    if (resp.ok) {
+      setStatus('Thank you! Your form has been submitted.', true);
+      try { form.reset(); } catch (e) {}
+      // Redirect to the thank-you page
+      setTimeout(function(){
+        window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html';
+      }, 600);
+    } else {
+      const t = await resp.text();
+      console.error('GAS error:', t);
+      setStatus('Submission failed. Please try again.', false);
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'SUBMIT'; }
     }
   } catch (netErr) {
     console.error('Network error:', netErr);
@@ -2763,23 +2774,25 @@ var plainPairs = window.collectAllAnswersPairs(form);
 
     try {
       const resp = await fetch(gasUrl, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({
-        type: 'intake_submission',
-        answers: plain,
-        pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null
-      })
-    })
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'intake_submission',
+          answers: plain,
+          pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null
+        })
       });
 
-      /* no-cors opaque response; assume success */
-{
-  setStatus('Thank you! Your form has been submitted.', true);
-  try { form.reset(); } catch (e) {}
-  setTimeout(function(){ window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html'; }, 600);
-}
+      if (resp.ok) {
+        setStatus('Thank you! Your form has been submitted.', true);
+        try { form.reset(); } catch (e) {}
+        // Redirect to a thank-you page if you have one
+        setTimeout(function(){ window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html'; }, 600);
+      } else {
+        const t = await resp.text();
+        console.error('GAS error:', t);
+        setStatus('Submission failed. Please try again or contact us.', false);
+      }
     } catch (err) {
       console.error('Network error:', err);
       setStatus('Network error. Please try again later.', false);
@@ -3410,22 +3423,23 @@ setStatus('Submitting your answers…', true);
 
     try {
       var resp = await fetch(gasUrl, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({
-        type: 'intake_submission',
-        answers: plain,
-        pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null
-      })
-    })
+        method: 'POST',
+        // No Content-Type header to avoid CORS preflight
+        body: JSON.stringify({
+          type: 'intake_submission',
+          answers: plain,
+          pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null
+        })
       });
-      /* no-cors opaque response; assume success */
-{
-  setStatus('Thank you! Your form has been submitted.', true);
-  try { form.reset(); } catch (e) {}
-  setTimeout(function(){ window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html'; }, 600);
-}
+      if (resp.ok) {
+        setStatus('Thank you! Your form has been submitted.', true);
+        try { form.reset(); } catch (e) {}
+        setTimeout(function(){ window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html'; }, 600);
+      } else {
+        var t = await resp.text();
+        console.error('GAS error:', t);
+        setStatus('Submission failed. Please try again.', false);
+      }
     } catch (err) {
       console.error('Network error:', err);
       setStatus('Network error. Please try again later.', false);
@@ -3601,22 +3615,23 @@ var pdfBase64 = null;
 
     try {
       var resp = await fetch(gasUrl, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({
-        type: 'intake_submission',
-        answers: plain,
-        pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null
-      })
-    })
+        method: 'POST',
+        body: JSON.stringify({
+          type: 'intake_submission',
+          answers: plain,
+          pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null,
+          meta: { usedFallback: usedFallback, base64Len: pdfBase64 ? pdfBase64.length : 0 }
+        })
       });
-      /* no-cors opaque response; assume success */
-{
-  setStatus('Thank you! Your form has been submitted.', true);
-  try { form.reset(); } catch (e) {}
-  setTimeout(function(){ window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html'; }, 600);
-}
+      if (resp.ok) {
+        setStatus('Thank you! Your form has been submitted.', true);
+        try { form.reset(); } catch (e) {}
+        setTimeout(function(){ window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html'; }, 600);
+      } else {
+        var t = await resp.text();
+        console.error('GAS error:', t);
+        setStatus('Submission failed. Please try again.', false);
+      }
     } catch (err) {
       console.error('Network error:', err);
       setStatus('Network error. Please try again later.', false);
@@ -3686,6 +3701,276 @@ document.addEventListener('DOMContentLoaded', function () {
   }, true);
 })();
 </script>
+
+
+<!-- FINAL HOTFIX SCRIPT -->
+<script>
+(function(){
+  // Load guard: run after DOM is ready
+  function onReady(fn){ if (document.readyState !== 'loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
+
+  onReady(function(){
+    var form = document.getElementById('intakeForm');
+    if (!form) return;
+
+    // Fallback status setter if missing
+    if (typeof window.setStatus !== 'function') {
+      window.setStatus = function(msg, ok){
+        var el = document.getElementById('statusMsg');
+        if (!el) return;
+        el.textContent = msg || '';
+        el.style.color = ok ? '#2b7a0b' : '#b00020';
+      };
+    }
+
+    // Helper: filename
+    if (typeof window.buildFilename !== 'function') {
+      window.buildFilename = function(){
+        var ts = new Date().toISOString().replace(/[:T]/g,'-').split('.')[0];
+        return 'intake-' + ts + '.pdf';
+      };
+    }
+
+    // Helper: blob -> base64
+    if (typeof window.blobToBase64 !== 'function') {
+      window.blobToBase64 = function(blob){
+        return new Promise(function(resolve, reject){
+          var r = new FileReader();
+          r.onloadend = function(){ resolve(String(r.result).split(',')[1] || ''); };
+          r.onerror = reject;
+          try { r.readAsDataURL(blob); } catch(e){ reject(e); }
+        });
+      };
+    }
+
+    // Ordered collector and readable lines (answered-only for non-scoring; 0 default for scoring)
+    function clean(s){ return String(s||'').replace(/\s+/g,' ').trim(); }
+    function collectAllAnswersPairs(form){
+      var pairs = [];
+      var fields = form.querySelectorAll('.field');
+      fields.forEach(function(block){
+        // Inline radios (Sex, Pregnancy, etc.)
+        var radioGroups = {};
+        block.querySelectorAll('input[type="radio"]').forEach(function(r){
+          var inTable = !!r.closest('table');
+          if (!inTable) {
+            radioGroups[r.name] = radioGroups[r.name] || [];
+            radioGroups[r.name].push(r);
+          }
+        });
+        var inlineLabelEl = block.querySelector('.label-inline');
+        Object.keys(radioGroups).forEach(function(name){
+          var group = radioGroups[name];
+          var labelText = inlineLabelEl ? clean(inlineLabelEl.textContent) : (name || '');
+          var chosen = null, allDigits = true;
+          group.forEach(function(r){ if (r.checked) chosen = r.value; });
+          group.forEach(function(r){ if (!/^\d+$/.test(String(r.value))) allDigits = false; });
+          if (chosen==null) chosen = allDigits ? '0' : '';
+          if (labelText && chosen !== '') pairs.push([labelText, chosen]);
+        });
+
+        // Tables
+        block.querySelectorAll('table.table').forEach(function(tbl){
+          var headers = [];
+          tbl.querySelectorAll('thead th').forEach(function(th,i){ headers[i] = clean(th.textContent||''); });
+          var sectionLabel = (function(){
+            var lab = block.querySelector('label'); return lab ? clean(lab.textContent||'') : '';
+          })();
+
+          var hasRadios = !!tbl.querySelector('input[type="radio"]');
+          var hasText = !!tbl.querySelector('input[type="text"], textarea, select');
+
+          if (hasRadios && !hasText) {
+            // Scoring table
+            tbl.querySelectorAll('tbody tr').forEach(function(tr){
+              var q = tr.querySelector('td');
+              var qtext = q ? clean(q.textContent||'') : sectionLabel;
+              var radios = tr.querySelectorAll('input[type="radio"]');
+              var chosen = null, allDigits = true;
+              radios.forEach(function(r){ if (r.checked) chosen = r.value; });
+              radios.forEach(function(r){ if (!/^\d+$/.test(String(r.value))) allDigits = false; });
+              if (chosen==null) chosen = allDigits ? '0' : '';
+              pairs.push([qtext, chosen]);
+            });
+            return;
+          }
+
+          if (hasText) {
+            var rowIdx = 0;
+            tbl.querySelectorAll('tbody tr').forEach(function(tr){
+              rowIdx += 1;
+              var tds = tr.querySelectorAll('td');
+              var rowMap = {};
+              tds.forEach(function(td,i){
+                var inp = td.querySelector('input, textarea, select');
+                if (!inp) return;
+                var col = headers[i] || '';
+                var val = clean(inp.value||'');
+                rowMap[col] = val;
+              });
+              // Emit in compact single-line formats
+              var sec = sectionLabel.toLowerCase();
+              if (sec.includes('five major health concerns')) {
+                var hc = rowMap['Health concern'] || rowMap['Health Concern'] || rowMap['Concern'] || '';
+                var dur = rowMap['Duration'] || '';
+                if (hc || dur) pairs.push([sectionLabel + ' - Row ' + rowIdx + ' - COMPACT', 'Health Concern ' + rowIdx + ': ' + (hc||'') + (dur? ' Duration: ' + dur : '')]);
+              } else if (sec.includes('previous health issues')) {
+                var issue = rowMap['Health issue'] || rowMap['Issue'] || '';
+                var dur2 = rowMap['Duration'] || '';
+                var managed = rowMap['How you managed it'] || rowMap['How you managed'] || rowMap['How managed'] || '';
+                var started = rowMap['When did it start'] || rowMap['When started'] || '';
+                if (issue || dur2 || managed || started) {
+                  var parts = [];
+                  if (issue) parts.push('Issue: ' + issue);
+                  if (dur2) parts.push('Duration: ' + dur2);
+                  if (managed) parts.push('Managed: ' + managed);
+                  if (started) parts.push('Started: ' + started);
+                  pairs.push([sectionLabel + ' - Row ' + rowIdx + ' - COMPACT', 'Health Issue ' + rowIdx + ': ' + parts.join(' ')]);
+                }
+              } else if (sec.includes('current medication')) {
+                var name = rowMap['Name'] || '';
+                var dose = rowMap['Dose'] || '';
+                var dur3 = rowMap['Duration you’ve been taking them'] || rowMap['Duration you\'ve been taking them'] || rowMap['Duration'] || '';
+                if (name || dose || dur3) {
+                  var parts2 = [];
+                  if (name) parts2.push('Name: ' + name);
+                  if (dose) parts2.push('Dose: ' + dose);
+                  if (dur3) parts2.push('Duration: ' + dur3);
+                  pairs.push([sectionLabel + ' - Row ' + rowIdx + ' - COMPACT', 'Medication ' + rowIdx + ': ' + parts2.join(' ')]);
+                }
+              } else {
+                // Generic table fallback: include non-empty cells
+                Object.keys(rowMap).forEach(function(col){
+                  var v = rowMap[col];
+                  if (v) pairs.push([sectionLabel + ' - Row ' + rowIdx + ' - ' + col, v]);
+                });
+              }
+            });
+            return;
+          }
+        });
+
+        // Standalone inputs (non-hidden, non-radio, not in table)
+        block.querySelectorAll('input:not([type="radio"]):not([type="checkbox"]), textarea, select').forEach(function(el){
+          if (el.type === 'hidden' || el.closest('table')) return;
+          var lab = (function(){
+            var id = el.id, l = id ? document.querySelector('label[for="' + id + '"]') : null;
+            if (l) return clean(l.textContent||'');
+            var f = el.closest('.field'); var l2 = f ? f.querySelector('label') : null;
+            return l2 ? clean(l2.textContent||'') : (el.name || el.id || '');
+          })();
+          var val = clean(el.value||'');
+          if (val) pairs.push([lab, val]);
+        });
+      });
+      return pairs;
+    }
+
+    function collectAllAnswersObj(form){
+      var obj = {};
+      collectAllAnswersPairs(form).forEach(function(p){ if (p[0]) obj[p[0]] = p[1]; });
+      return obj;
+    }
+
+    function buildReadableLines(form){
+      var pairs = collectAllAnswersPairs(form);
+      var lines = [];
+      var lastHeader = null;
+      pairs.forEach(function(p){
+        var k = p[0], v = p[1];
+        if (/ - Row \d+ - COMPACT$/.test(k)) {
+          var header = k.split(' - Row ')[0];
+          if (header !== lastHeader) { lines.push(header + ':'); lastHeader = header; }
+          lines.push(v);
+        } else {
+          lastHeader = null;
+          lines.push(k + ': ' + v);
+        }
+        lines.push('');
+      });
+      return lines;
+    }
+
+    async function generatePdfBlob(){
+      var renderTarget = document.getElementById('intakeForm');
+      if (!window.html2pdf || !renderTarget) return null;
+      var opt = { margin: [10,10,10,10], filename: buildFilename(), image: { type: 'jpeg', quality: 0.95 }, html2canvas: { scale: 2, useCORS: true, logging: false }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css','legacy'] } };
+      return new Promise(function(resolve, reject){
+        try {
+          html2pdf().set(opt).from(renderTarget).outputPdf('blob').then(resolve).catch(reject);
+        } catch (e){ reject(e); }
+      });
+    }
+
+    async function generateFallbackPdfBase64(lines){
+      // Use jsPDF from html2pdf bundle
+      if (!window.jspdf && !window.jsPDF) return '';
+      var jsPDF = window.jspdf ? window.jspdf.jsPDF : window.jsPDF;
+      var doc = new jsPDF({ unit:'pt', format:'a4', orientation:'portrait' });
+      var x = 40, y = 50, maxWidth = 515, lineHeight = 16;
+      (lines || []).forEach(function(li){
+        var parts = doc.splitTextToSize(li || ' ', maxWidth);
+        parts.forEach(function(row){
+          if (y > 780) { doc.addPage(); y = 50; }
+          doc.text(row, x, y); y += lineHeight;
+        });
+      });
+      return doc.output('datauristring').split(',')[1] || '';
+    }
+
+    async function handleSubmit_GAS(e){
+      if (e && e.preventDefault) e.preventDefault();
+
+      var btn = form.querySelector('button[type="submit"]');
+      if (btn) { btn.disabled = true; btn.textContent = 'Generating PDF…'; }
+      setStatus('Generating PDF of your answers…', true);
+
+      // Try visual PDF, fallback to text PDF
+      var pdfBlob = null, pdfBase64 = null;
+      try { pdfBlob = await generatePdfBlob(); } catch(_){}
+      if (pdfBlob) { try { pdfBase64 = await blobToBase64(pdfBlob); } catch(_){ } }
+      if (!pdfBlob || !pdfBase64) {
+        try { pdfBase64 = await generateFallbackPdfBase64(buildReadableLines(form)); } catch(_){ }
+      }
+
+      var answers = collectAllAnswersObj(form);
+      var filename = buildFilename();
+      var gasUrl = form.getAttribute('data-gas-url');
+
+      if (!gasUrl) {
+        setStatus('Missing Apps Script URL. Edit data-gas-url on the form.', false);
+        if (btn) { btn.disabled = false; btn.textContent = 'SUBMIT'; }
+        return;
+      }
+
+      setStatus('Sending your form…', true);
+      try {
+        // Use no-cors + text/plain to avoid preflight/405
+        fetch(gasUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ type: 'intake_submission', answers: answers, pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null })
+        });
+      } catch(_){}
+
+      // Assume success (opaque response)
+      setStatus('Thank you! Your form has been submitted.', true);
+      try { form.reset(); } catch(_){}
+      setTimeout(function(){ window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html'; }, 600);
+    }
+
+    // FINAL capture-phase guard: always intercept and call our handler
+    if (!window.__finalWired) {
+      window.__finalWired = true;
+      document.addEventListener('submit', function(ev){
+        if (ev && ev.target === form) { try { ev.preventDefault(); } catch(_){ } handleSubmit_GAS(ev); }
+      }, true);
+    }
+  });
+})();
+</script>
+<!-- /FINAL HOTFIX SCRIPT -->
 
 </body>
 </html>
