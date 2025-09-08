@@ -2651,8 +2651,81 @@
   }
 
   async function handleSubmit_GAS(e) {
-    e.preventDefault();
+  // Prevent the browser from submitting the <form> normally
+  if (e && e.preventDefault) e.preventDefault();
 
+  var submitBtn = form.querySelector('button[type="submit"]');
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Generating PDF…'; }
+  setStatus('Generating PDF of your answers…', true);
+
+  // Generate the visual PDF blob from the form
+  let pdfBlob = null;
+  try {
+    pdfBlob = await generatePdfBlob();
+  } catch (err) {
+    console.error('PDF generation failed:', err);
+    setStatus('Could not generate PDF automatically.', false);
+  }
+
+  // Fallback to a text PDF if visual PDF failed
+  let pdfBase64 = null;
+  if (!pdfBlob) {
+    try {
+      const lines = window.buildReadablePdfLines(form);
+      pdfBase64 = await generateFallbackPdfBase64(lines);
+    } catch (err2) {
+      console.error('Fallback text PDF failed:', err2);
+    }
+  } else {
+    try {
+      pdfBase64 = await blobToBase64(pdfBlob);
+    } catch (e3) {
+      console.error('blobToBase64 failed:', e3);
+    }
+  }
+
+  // Build answers object (complete, order preserved in the PDF builder)
+  var plain = window.collectAllAnswers(form);
+  var filename = buildFilename();
+
+  // Post to Apps Script
+  const gasUrl = form.getAttribute('data-gas-url');
+  if (!gasUrl || !/^https?:\/\//i.test(gasUrl)) {
+    setStatus('Missing Apps Script URL. Edit data-gas-url on the form.', false);
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'SUBMIT'; }
+    return;
+  }
+
+  setStatus('Sending your form…', true);
+  try {
+    const resp = await fetch(gasUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'intake_submission',
+        answers: plain,
+        pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null
+      })
+    });
+
+    if (resp.ok) {
+      setStatus('Thank you! Your form has been submitted.', true);
+      try { form.reset(); } catch (e) {}
+      // Redirect to the thank-you page
+      setTimeout(function(){
+        window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html';
+      }, 600);
+    } else {
+      const t = await resp.text();
+      console.error('GAS error:', t);
+      setStatus('Submission failed. Please try again.', false);
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'SUBMIT'; }
+    }
+  } catch (netErr) {
+    console.error('Network error:', netErr);
+    setStatus('Network error. Please try again.', false);
+    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'SUBMIT'; }
+  }
 } catch(_){ }
     e.preventDefault();
 
@@ -2729,7 +2802,7 @@ var plainPairs = window.collectAllAnswersPairs(form);
   }
 
   // Bind our new handler
-  if (!window.__wiredSubmitGAS) { window.__wiredSubmitGAS = true; form.addEventListener('submit', handleSubmit_GAS); }
+  if (!window.__wiredSubmitGAS) { window.__wiredSubmitGAS = true; if (!window.__wiredSubmitGAS) { window.__wiredSubmitGAS = true; form.addEventListener('submit', handleSubmit_GAS); } }
 })();
 </script>
 
@@ -3375,7 +3448,7 @@ setStatus('Submitting your answers…', true);
     }
   }
 
-  if (!window.__wiredSubmitGAS) { window.__wiredSubmitGAS = true; form.addEventListener('submit', handleSubmit_GAS); }
+  if (!window.__wiredSubmitGAS) { window.__wiredSubmitGAS = true; if (!window.__wiredSubmitGAS) { window.__wiredSubmitGAS = true; form.addEventListener('submit', handleSubmit_GAS); } }
 
 })();
 // END GAS SUBMIT
@@ -3567,7 +3640,7 @@ var pdfBase64 = null;
     }
   }
 
-  if (!window.__wiredSubmitGAS) { window.__wiredSubmitGAS = true; form.addEventListener('submit', handleSubmit_GAS); }
+  if (!window.__wiredSubmitGAS) { window.__wiredSubmitGAS = true; if (!window.__wiredSubmitGAS) { window.__wiredSubmitGAS = true; form.addEventListener('submit', handleSubmit_GAS); } }
 
 })();
 </script>
