@@ -2845,7 +2845,9 @@ var submitBtn = form.querySelector('button[type="submit"]');
   }
 
   async function handleSubmit_GAS(e) {
-    e.preventDefault();
+    
+    ensureZeroForUnansweredRadios(form);
+e.preventDefault();
 
     
     var __ok = false;
@@ -2853,8 +2855,11 @@ var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]'
     if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Generating PDF…'; }
     setStatus('Generating PDF of your answers…', true);
 
+    ensureZeroForUnansweredRadios(form);
     var fd = new FormData(form);
     var plain = formDataToObject(fd);
+    var labelMap = buildLabelMap(form);
+    var pdfBase64 = await generateTextPdfBase64(labelMap, plain);
 
     var pdfBase64 = null;
     var filename = buildFilename();
@@ -2957,6 +2962,132 @@ document.addEventListener('DOMContentLoaded', function () {
   // Expose globally for existing code to call
   window.lockSubmitButton = lockSubmitButton;
 })();
+</script>
+
+
+<script>
+function ensureZeroForUnansweredRadios(form) {
+  const radios = form.querySelectorAll('input[type="radio"][name]');
+  const groupNames = Array.from(new Set(Array.from(radios).map(r => r.name)));
+  groupNames.forEach(name => {
+    const group = Array.from(form.querySelectorAll('input[type="radio"][name="' + name + '"]'));
+    if (group.length === 0) return;
+    const has01 = group.some(r => r.value === '0' || r.value === '1' || r.value === '2' || r.value === '3');
+    if (!has01) return;
+    const anyChecked = group.some(r => r.checked);
+    if (!anyChecked) {
+      const h = document.createElement('input');
+      h.type = 'hidden';
+      h.name = name;
+      h.value = '0';
+      h.dataset.injectedDefault = '1';
+      form.appendChild(h);
+    }
+  });
+}
+
+function buildLabelMap(form) {
+  const map = {};
+  const clean = s => (s || '').replace(/\s+/g, ' ').trim();
+  form.querySelectorAll('input, select, textarea').forEach(el => {
+    const name = el.name || '';
+    if (!name) return;
+    if (map[name]) return;
+    let labelTxt = '';
+
+    if (el.id) {
+      const lab = form.querySelector('label[for="' + el.id + '"]');
+      if (lab) labelTxt = clean(lab.textContent);
+    }
+    if (!labelTxt) {
+      const tr = el.closest('tr');
+      if (tr) {
+        const firstCell = tr.querySelector('th, td');
+        if (firstCell) {
+          const t = clean(firstCell.textContent);
+          if (t && !/^\s*(0|1|2|3)\s*$/.test(t)) labelTxt = t;
+        }
+      }
+    }
+    if (!labelTxt) {
+      let p = el.parentElement;
+      while (p && p !== form) {
+        const labNode = p.querySelector(':scope > .label, :scope > .label-inline, :scope > label');
+        if (labNode) { labelTxt = clean(labNode.textContent); break; }
+        p = p.parentElement;
+      }
+    }
+    if (!labelTxt) labelTxt = clean(el.getAttribute('placeholder')) || name;
+    map[name] = labelTxt;
+  });
+  return map;
+}
+
+function formDataToObject(fd) {
+  const obj = {};
+  for (const [k, v] of fd.entries()) {
+    if (!(k in obj)) obj[k] = v;
+  }
+  return obj;
+}
+
+function answersToHumanLines(answers, labelMap) {
+  const lines = [];
+  const used = new Set();
+  Object.keys(answers).forEach(k => {
+    if (k.startsWith('_')) return;
+    if (k === 'g-recaptcha-response') return;
+    const label = labelMap[k] || k;
+    let val = answers[k];
+    if (Array.isArray(val)) val = val.join(', ');
+    lines.push(label + ': ' + (val == null ? '' : String(val)));
+    used.add(k);
+  });
+  Object.keys(labelMap).forEach(k => {
+    if (used.has(k)) return;
+    const label = labelMap[k];
+    lines.push(label + ': ');
+  });
+  return lines;
+}
+
+async function generateTextPdfBase64(labelMap, answers) {
+  try {
+    var jsPDFCtor = (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF : null;
+    if (!jsPDFCtor) throw new Error('jsPDF not available on page.');
+    const doc = new jsPDFCtor({ unit: 'pt', format: 'a4' });
+    const marginLeft = 40, marginTop = 50, lineHeight = 18, maxWidth = 515;
+    doc.setFont('Helvetica', 'normal'); doc.setFontSize(12);
+
+    const lines = answersToHumanLines(answers, labelMap);
+    let x = marginLeft, y = marginTop;
+
+    doc.setFontSize(14); doc.setFont('Helvetica', 'bold');
+    doc.text('Intake Form', x, y); y += 24;
+    doc.setFontSize(12); doc.setFont('Helvetica', 'normal');
+
+    lines.forEach(line => {
+      const wrapped = doc.splitTextToSize(line, maxWidth);
+      wrapped.forEach(w => {
+        if (y > 800) { doc.addPage(); y = marginTop; }
+        doc.text(w, x, y);
+        y += lineHeight;
+      });
+    });
+
+    const arrayBuffer = doc.output('arraybuffer');
+    let binary = '';
+    const bytes = new Uint8Array(arrayBuffer);
+    const chunkSize = 0x8000;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+    }
+    return btoa(binary);
+  } catch (e) {
+    console.error('Text PDF generation failed:', e);
+    return null;
+  }
+}
 </script>
 
 </body>
