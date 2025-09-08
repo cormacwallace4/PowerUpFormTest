@@ -2677,7 +2677,8 @@ var submitBtn = form.querySelector('button[type="submit"]');
     // Collect all answers
     var plain = window.collectAllAnswers(form);
 
-    // Attach the PDF as base64 if we have it
+    var plainPairs = window.collectAllAnswersPairs(form);
+// Attach the PDF as base64 if we have it
     let pdfBase64 = null;
     let filename = buildFilename();
     if (pdfBlob) {
@@ -2806,6 +2807,113 @@ var submitBtn = form.querySelector('button[type="submit"]');
 </script>
 <!-- END: INCLUDE-ALL-QUESTIONS HELPERS -->
 
+<!-- BEGIN: ORDER-PRESERVING HELPERS -->
+<script>
+(function(){
+  // Only add once
+  if (!window.collectAllAnswersPairs) {
+    // Reuse labelFor if present, else define
+    if (!window.labelFor) {
+      window.labelFor = function(el){
+        if (!el) return '';
+        var id = el.id;
+        if (id) {
+          var lab = document.querySelector('label[for="' + id + '"]');
+          if (lab) return (lab.textContent || '').trim();
+        }
+        var wrap = el.closest && el.closest('.field');
+        if (wrap) {
+          var lab2 = wrap.querySelector && wrap.querySelector('label');
+          if (lab2) return (lab2.textContent || '').trim();
+        }
+        return (el.name || id || '').trim();
+      };
+    }
+
+    // Build [label, value] pairs in the SAME order as they appear in the DOM
+    window.collectAllAnswersPairs = function(form){
+      var pairs = [];
+      var seen = Object.create(null);
+
+      var nodes = form.querySelectorAll('table.table tbody tr, input:not([type="radio"]):not([type="checkbox"]), textarea, select');
+
+      nodes.forEach(function(node){
+        if (node.tagName && node.tagName.toLowerCase() === 'tr') {
+          var radios = node.querySelectorAll('input[type="radio"]');
+          if (radios && radios.length) {
+            var firstCell = node.querySelector('td');
+            var label = '';
+            if (firstCell) label = (firstCell.textContent || '').trim().replace(/\s+/g, ' ');
+            if (!label) label = (radios[0].name || '').trim();
+
+            var value = null;
+            radios.forEach(function(r){ if (r.checked) value = r.value; });
+            if (value == null) {
+              var allDigits = true;
+              radios.forEach(function(r){ if (!/^\d+$/.test(String(r.value))) allDigits = false; });
+              value = allDigits ? '0' : '';
+            }
+
+            if (label && !seen[label]) {
+              seen[label] = true;
+              pairs.push([label, value]);
+            }
+          }
+        } else {
+          // input/textarea/select (non-hidden)
+          if (node.type === 'hidden') return;
+          var key = window.labelFor(node) || node.name || node.id || '';
+          if (!key) return;
+          if (seen[key]) return;
+          seen[key] = true;
+          var val = (node.value != null ? String(node.value) : '');
+          pairs.push([key, val]);
+        }
+      });
+
+      return pairs;
+    };
+
+    // Keep existing object builder but derive from ordered pairs to preserve same keys
+    window.collectAllAnswers = function(form){
+      var obj = {};
+      var pairs = window.collectAllAnswersPairs(form);
+      pairs.forEach(function(p){
+        obj[p[0]] = p[1];
+      });
+      return obj;
+    };
+
+    // Build lines from either an object or from [label, value] pairs (keeps form order when pairs passed)
+    window.answersToLinesFromEither = function(input){
+      var out = [];
+      if (Array.isArray(input)) {
+        input.forEach(function(pair){
+          var k = pair[0];
+          var v = pair[1];
+          if (Array.isArray(v)) v = v.join(', ');
+          if (v == null) v = '';
+          out.push(k + ': ' + v);
+        });
+        return out;
+      }
+      if (input && typeof input === 'object') {
+        // Object path (legacy). Order of JS objects is insertion order, but not guaranteed to match DOM.
+        Object.keys(input).forEach(function(k){
+          var v = input[k];
+          if (Array.isArray(v)) v = v.join(', ');
+          if (v == null) v = '';
+          out.push(k + ': ' + v);
+        });
+        return out;
+      }
+      return out;
+    };
+  }
+})();
+</script>
+<!-- END: ORDER-PRESERVING HELPERS -->
+
 <!-- BEGIN: GAS PDF submit -->
 <script>
 // BEGIN GAS SUBMIT
@@ -2912,7 +3020,8 @@ var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]'
 
     var plain = window.collectAllAnswers(form);
 
-    setStatus('Submitting your answers…', true);
+    var plainPairs = window.collectAllAnswersPairs(form);
+setStatus('Submitting your answers…', true);
     if (submitBtn) submitBtn.textContent = 'Submitting…'; lockSubmitButton(submitBtn); lockSubmitButton(submitBtn);
 
     try {
@@ -3019,7 +3128,7 @@ var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]'
     return obj;
   }
 
-  function answersToLines(obj) {
+  function answersToLinesFromEither(obj) {
     var lines = [];
     Object.keys(obj).forEach(function(k){
       var v = obj[k];
@@ -3042,7 +3151,7 @@ var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]'
     y += 24;
 
     doc.setFontSize(11);
-    var lines = answersToLines(answers);
+    var lines = answersToLinesFromEither(answers);
     for (var i=0;i<lines.length;i++) {
       var wrapped = doc.splitTextToSize(lines[i], maxWidth);
       for (var j=0;j<wrapped.length;j++) {
@@ -3070,7 +3179,8 @@ var submitBtn = form.querySelector('button[type="submit"], input[type="submit"]'
 
     var plain = window.collectAllAnswers(form);
 
-    var pdfBase64 = null;
+    var plainPairs = window.collectAllAnswersPairs(form);
+var pdfBase64 = null;
     var filename = buildFilename();
     var usedFallback = false;
 
