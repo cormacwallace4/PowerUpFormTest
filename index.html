@@ -17,7 +17,7 @@
 <body>
   <main class="page">
     <div class="container">
-      <form class="card" id="intakeForm" action="" data-gas-url="https://script.google.com/macros/s/AKfycbwKEyiU_ssR5obtpJSHOs7J6eErX0ob6QpwvShPXn9a95Og5NDHt1AjaKNFYrvrZn7VMQ/exec" method="POST" enctype="multipart/form-data" novalidate>
+      <form class="card" id="intakeForm" action=\"#\" data-gas-url="https://script.google.com/macros/s/AKfycbwKEyiU_ssR5obtpJSHOs7J6eErX0ob6QpwvShPXn9a95Og5NDHt1AjaKNFYrvrZn7VMQ/exec" method="POST" enctype="multipart/form-data" novalidate>
 <input type="hidden" name="_subject" value="New Intake Form Submission" />
 <div id="formStatus" aria-live="polite" style="margin:8px 0 0 0;"></div>
 
@@ -2571,19 +2571,12 @@
           body: data
         });
 
-        if (resp.ok) {
-          setStatus('Thank you! Your form has been submitted' + (pdfBlob ? ' with a PDF attached.' : '.'), true);
-
-          // Nice UX: show a simple success, then reset form
-          try { form.reset(); } catch (e) {}
-
-          // If you have a thank-you page, you can redirect:
-          // window.location.href = '/thank-you.html';
-        } else {
-          var txt = await resp.text();
-          console.error('Formspree error:', txt);
-          setStatus('Submission failed. Please try again or contact us directly.', false);
-        }
+        /* no-cors opaque response; assume success */
+{
+  setStatus('Thank you! Your form has been submitted.', true);
+  try { form.reset(); } catch (e) {}
+  setTimeout(function(){ window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html'; }, 600);
+}
       } catch (err) {
         console.error('Network error:', err);
         setStatus('Network error. Please try again later.', false);
@@ -2700,26 +2693,22 @@
   try {
     const resp = await fetch(gasUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({
         type: 'intake_submission',
         answers: plain,
         pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null
       })
+    })
     });
 
-    if (resp.ok) {
-      setStatus('Thank you! Your form has been submitted.', true);
-      try { form.reset(); } catch (e) {}
-      // Redirect to the thank-you page
-      setTimeout(function(){
-        window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html';
-      }, 600);
-    } else {
-      const t = await resp.text();
-      console.error('GAS error:', t);
-      setStatus('Submission failed. Please try again.', false);
-      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'SUBMIT'; }
+    /* no-cors opaque response; assume success */
+{
+  setStatus('Thank you! Your form has been submitted.', true);
+  try { form.reset(); } catch (e) {}
+  setTimeout(function(){ window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html'; }, 600);
+}
     }
   } catch (netErr) {
     console.error('Network error:', netErr);
@@ -2774,25 +2763,23 @@ var plainPairs = window.collectAllAnswersPairs(form);
 
     try {
       const resp = await fetch(gasUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          type: 'intake_submission',
-          answers: plain,
-          pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null
-        })
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        type: 'intake_submission',
+        answers: plain,
+        pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null
+      })
+    })
       });
 
-      if (resp.ok) {
-        setStatus('Thank you! Your form has been submitted.', true);
-        try { form.reset(); } catch (e) {}
-        // Redirect to a thank-you page if you have one
-        setTimeout(function(){ window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html'; }, 600);
-      } else {
-        const t = await resp.text();
-        console.error('GAS error:', t);
-        setStatus('Submission failed. Please try again or contact us.', false);
-      }
+      /* no-cors opaque response; assume success */
+{
+  setStatus('Thank you! Your form has been submitted.', true);
+  try { form.reset(); } catch (e) {}
+  setTimeout(function(){ window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html'; }, 600);
+}
     } catch (err) {
       console.error('Network error:', err);
       setStatus('Network error. Please try again later.', false);
@@ -3423,23 +3410,22 @@ setStatus('Submitting your answers…', true);
 
     try {
       var resp = await fetch(gasUrl, {
-        method: 'POST',
-        // No Content-Type header to avoid CORS preflight
-        body: JSON.stringify({
-          type: 'intake_submission',
-          answers: plain,
-          pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null
-        })
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        type: 'intake_submission',
+        answers: plain,
+        pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null
+      })
+    })
       });
-      if (resp.ok) {
-        setStatus('Thank you! Your form has been submitted.', true);
-        try { form.reset(); } catch (e) {}
-        setTimeout(function(){ window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html'; }, 600);
-      } else {
-        var t = await resp.text();
-        console.error('GAS error:', t);
-        setStatus('Submission failed. Please try again.', false);
-      }
+      /* no-cors opaque response; assume success */
+{
+  setStatus('Thank you! Your form has been submitted.', true);
+  try { form.reset(); } catch (e) {}
+  setTimeout(function(){ window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html'; }, 600);
+}
     } catch (err) {
       console.error('Network error:', err);
       setStatus('Network error. Please try again later.', false);
@@ -3615,23 +3601,22 @@ var pdfBase64 = null;
 
     try {
       var resp = await fetch(gasUrl, {
-        method: 'POST',
-        body: JSON.stringify({
-          type: 'intake_submission',
-          answers: plain,
-          pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null,
-          meta: { usedFallback: usedFallback, base64Len: pdfBase64 ? pdfBase64.length : 0 }
-        })
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        type: 'intake_submission',
+        answers: plain,
+        pdf: pdfBase64 ? { filename: filename, base64: pdfBase64 } : null
+      })
+    })
       });
-      if (resp.ok) {
-        setStatus('Thank you! Your form has been submitted.', true);
-        try { form.reset(); } catch (e) {}
-        setTimeout(function(){ window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html'; }, 600);
-      } else {
-        var t = await resp.text();
-        console.error('GAS error:', t);
-        setStatus('Submission failed. Please try again.', false);
-      }
+      /* no-cors opaque response; assume success */
+{
+  setStatus('Thank you! Your form has been submitted.', true);
+  try { form.reset(); } catch (e) {}
+  setTimeout(function(){ window.location.href = 'https://cormacwallace4.github.io/PowerUpFormTest/thanks.html'; }, 600);
+}
     } catch (err) {
       console.error('Network error:', err);
       setStatus('Network error. Please try again later.', false);
